@@ -83,9 +83,5 @@ NB: Refer to the system package.json
 ## Authors and Support Contact
 
 Contributors
-- [Furaha Yves Derick Dukundane](mailto:yvesderricks@gmail.com)
-- [Iriza Peace Mary Amizero](mailto:irizapeace@gmail.com)
+- [Iriza Peace Mary Amizero](mailto:irizapeace3@gmail.com)
 
-## License
-
-This project is licensed under the license of the Ministry of Public Service and Labor, MIFOTRA.
