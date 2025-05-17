@@ -2,7 +2,7 @@
 
 const config = {
   defaultPath: '/login',
-  fontFamily: `'Nunito',sans-serif`,
+  fontFamily: `'Roboto',sans-serif`,
   i18n: 'en',
   miniDrawer: false,
   container: true,

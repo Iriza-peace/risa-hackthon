@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import {
   Card,
@@ -22,7 +22,17 @@ import {
   Share2,
   Clock,
 } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
+import { formatDistanceToNow } from "date-fns"; // Removed import
+
+interface Comment {
+  ticket_id: number;
+  author_name: string;
+  author_avatar?: string;
+  author_type?: string;
+  content: string;
+  is_public: boolean;
+  createdAt?: string;
+}
 
 interface Ticket {
   ticket_id: number;
@@ -35,12 +45,12 @@ interface Ticket {
   ticket_title: string;
   upvotes: number;
   downvotes: number;
-  comments: string[]; // Assuming comments is an array of strings or objects
+  comments: Comment[];
   ticket_description: string;
   ticket_status: string;
   agent_id: number | null;
-  createdAt?: string; // Assuming your API returns a creation timestamp
-  images?: string[]; // Assuming your API might return an array of image URLs
+  createdAt?: string; // Removed createdAt from the interface
+  images?: string[];
 }
 
 interface ComplaintCardProps {
@@ -80,13 +90,17 @@ const ComplaintCard: React.FC<ComplaintCardProps> = ({
   complaint,
   isDetailed = false,
 }) => {
-  const { user } = useAuth();
   const [upvoted, setUpvoted] = useState(false);
   const [downvoted, setDownvoted] = useState(false);
   const [upvotes, setUpvotes] = useState(complaint.upvotes);
   const [downvotes, setDownvotes] = useState(complaint.downvotes);
-  const [comment, setComment] = useState("");
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [newCommentContent, setNewCommentContent] = useState("");
   const [showCommentField, setShowCommentField] = useState(false);
+  const [commentAuthorName, setCommentAuthorName] = useState<string | null>(
+    null
+  );
+  const [isPromptingName, setIsPromptingName] = useState(false);
 
   const statusInfo =
     STATUSES.find((s) => s.value === complaint.ticket_status) || STATUSES[0];
@@ -121,30 +135,94 @@ const ComplaintCard: React.FC<ComplaintCardProps> = ({
     // In a real app, you would also make an API call to update the downvote count on the server.
   };
 
-  const handleCommentSubmit = () => {
-    // In a real application, this would send the comment to an API
-    if (comment.trim()) {
-      alert("Comment submitted: " + comment);
-      setComment("");
+  const fetchComments = async () => {
+    try {
+      const res = await fetch(
+        `http://localhost:5000/api/comments/tickets/${complaint.ticket_id}`
+      );
+      if (!res.ok) {
+        console.error(`Failed to fetch comments: ${res.status}`);
+        return;
+      }
+      const data = await res.json();
+      setComments(data);
+    } catch (err) {
+      console.error("Failed to fetch comments", err);
+    }
+  };
+
+  useEffect(() => {
+    if (isDetailed && complaint.ticket_id) {
+      fetchComments();
+    }
+  }, [isDetailed, complaint.ticket_id]);
+
+  const handleCommentButtonClick = () => {
+    setShowCommentField(true);
+  };
+
+  const handleNewCommentChange = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setNewCommentContent(event.target.value);
+    if (
+      event.target.value.trim() !== "" &&
+      !commentAuthorName &&
+      !isPromptingName
+    ) {
+      setIsPromptingName(true);
+      const name = prompt("Please enter your name to comment:");
+      setIsPromptingName(false);
+      if (name && name.trim() !== "") {
+        setCommentAuthorName(name.trim());
+      } else if (!name || name.trim() === "") {
+        setNewCommentContent(""); // Clear comment if name is not provided
+        setShowCommentField(false); // Optionally hide the comment field
+      }
+    }
+  };
+
+  const handleCommentSubmit = async () => {
+    if (!newCommentContent.trim() || !commentAuthorName) {
+      alert("Please enter your name and comment.");
+      return;
+    }
+    try {
+      const res = await fetch("http://localhost:5000/api/comments", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ticket_id: complaint.ticket_id,
+          author_name: commentAuthorName,
+          content: newCommentContent,
+          author_type: "citizen",
+          is_public: true,
+        }),
+      });
+
+      if (!res.ok) {
+        console.error(`Failed to submit comment: ${res.status}`);
+        return;
+      }
+
+      const newComment = await res.json();
+      console.log("New comment from backend:", newComment); // Debugging log
+      setComments((prevComments) => [...prevComments, newComment]);
+      console.log("New comments state:", comments); // Debugging log
+      setNewCommentContent("");
       setShowCommentField(false);
+      setCommentAuthorName(null);
+    } catch (err) {
+      console.error("Failed to submit comment", err);
     }
   };
 
   const timeSince = (dateString: string | undefined) => {
+    // Removed function
     if (!dateString) return "N/A";
-    const date = new Date(dateString);
-    const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
-    let interval = seconds / 31536000;
-    if (interval > 1) return Math.floor(interval) + " years ago";
-    interval = seconds / 2592000;
-    if (interval > 1) return Math.floor(interval) + " months ago";
-    interval = seconds / 86400;
-    if (interval > 1) return Math.floor(interval) + " days ago";
-    interval = seconds / 3600;
-    if (interval > 1) return Math.floor(interval) + " hours ago";
-    interval = seconds / 60;
-    if (interval > 1) return Math.floor(interval) + " minutes ago";
-    return Math.floor(seconds) + " seconds ago";
+    return formatDistanceToNow(new Date(dateString), { addSuffix: true });
   };
 
   return (
@@ -160,9 +238,6 @@ const ComplaintCard: React.FC<ComplaintCardProps> = ({
     >
       <CardContent>
         <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-          {/* <Avatar src={complaint.issuer_avatar} sx={{ mr: 1.5 }}>
-            {complaint.issuer_full_name.charAt(0).toUpperCase() ?? "?"}
-          </Avatar> */}
           <Typography variant="subtitle2" fontWeight="medium" sx={{ mr: 1 }}>
             {complaint.issuer_full_name}
           </Typography>
@@ -249,33 +324,48 @@ const ComplaintCard: React.FC<ComplaintCardProps> = ({
           />
         )}
 
-        {isDetailed &&
-          Array.isArray(complaint.comments) &&
-          complaint.comments.length > 0 && (
-            <Box sx={{ mt: 3 }}>
-              <Typography variant="h6" sx={{ mb: 2 }}>
-                Comments ({complaint.comments.length})
-              </Typography>
-              {complaint.comments.map((comment, index) => (
-                <Box key={index} sx={{ mb: 2, pl: 0 }}>
-                  {" "}
-                  {/* Adjust pl based on comment structure if needed */}
-                  <Typography variant="body2">
-                    {comment} {/* Assuming comments are just strings for now */}
+        {isDetailed && Array.isArray(comments) && comments.length > 0 && (
+          <Box sx={{ mt: 3 }}>
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              Comments ({comments.length})
+            </Typography>
+            {comments.map((comment) => (
+              <Box
+                key={`${comment.ticket_id}-${comment.content}`}
+                sx={{ mb: 2, pl: 0 }}
+              >
+                {" "}
+                {/* Updated key */}
+                <Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+                  <Avatar sx={{ mr: 1 }}>
+                    {comment.author_name?.charAt(0)?.toUpperCase() ?? "?"}
+                  </Avatar>
+                  <Typography variant="subtitle2" fontWeight="medium">
+                    {comment.author_name}
                   </Typography>
-                  {/* You might need to adjust this based on the actual structure of your comments */}
+                  {comment.author_type && (
+                    <Chip
+                      label={comment.author_type}
+                      size="small"
+                      sx={{ ml: 1 }}
+                    />
+                  )}
+                  {comment.createdAt && (
+                    <Typography variant="caption" color="text.secondary">
+                      {timeSince(comment.createdAt)}
+                    </Typography>
+                  )}
                 </Box>
-              ))}
-            </Box>
-          )}
+                <Typography variant="body1">{comment.content}</Typography>
+              </Box>
+            ))}
+          </Box>
+        )}
 
         {showCommentField && (
           <Box sx={{ mt: 2, display: "flex", alignItems: "flex-start" }}>
-            <Avatar
-              src={user?.avatar}
-              sx={{ width: 32, height: 32, mr: 1.5, mt: 1 }}
-            >
-              {user?.name?.charAt(0)?.toUpperCase() ?? "?"}
+            <Avatar sx={{ width: 32, height: 32, mr: 1.5, mt: 1 }}>
+              {commentAuthorName?.charAt(0)?.toUpperCase() ?? "?"}
             </Avatar>
             <Box sx={{ flexGrow: 1 }}>
               <TextField
@@ -283,8 +373,8 @@ const ComplaintCard: React.FC<ComplaintCardProps> = ({
                 multiline
                 rows={2}
                 placeholder="Write a comment..."
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
+                value={newCommentContent}
+                onChange={handleNewCommentChange} // Use the new change handler
                 variant="outlined"
                 size="small"
                 sx={{ mb: 1 }}
@@ -292,7 +382,11 @@ const ComplaintCard: React.FC<ComplaintCardProps> = ({
               <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}>
                 <Button
                   size="small"
-                  onClick={() => setShowCommentField(false)}
+                  onClick={() => {
+                    setShowCommentField(false);
+                    setNewCommentContent(""); // Clear input
+                    setCommentAuthorName(null); // Clear name on cancel
+                  }}
                   sx={{ textTransform: "none" }}
                 >
                   Cancel
@@ -301,7 +395,7 @@ const ComplaintCard: React.FC<ComplaintCardProps> = ({
                   size="small"
                   variant="contained"
                   onClick={handleCommentSubmit}
-                  disabled={!comment.trim()}
+                  disabled={!newCommentContent.trim() || !commentAuthorName}
                   sx={{ textTransform: "none" }}
                 >
                   Comment
@@ -338,13 +432,13 @@ const ComplaintCard: React.FC<ComplaintCardProps> = ({
         </Typography>
 
         <IconButton
-          onClick={() => setShowCommentField(!showCommentField)}
+          onClick={handleCommentButtonClick} // To show the comment field
           aria-label="comment"
         >
           <MessageSquare size={20} />
         </IconButton>
         <Typography variant="body2" sx={{ mr: 1 }}>
-          {Array.isArray(complaint.comments) ? complaint.comments.length : 0}
+          {Array.isArray(comments) ? comments.length : 0}
         </Typography>
 
         <Box sx={{ flexGrow: 1 }} />

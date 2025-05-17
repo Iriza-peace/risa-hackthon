@@ -59,18 +59,7 @@ const ChatArea = styled(Box)(({ theme }) => ({
   }
 }));
 
-const TeamArea = styled(Box)(({ theme }) => ({
-  display: 'none',
-  [theme.breakpoints.up('lg')]: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    width: 120,
-    borderLeft: '1px solid #e0e0e0',
-    padding: theme.spacing(2),
-    height: '90vh'
-  }
-}));
+// 
 
 const MessageRow = styled(Box)(({ type }) => ({
   display: 'flex',
@@ -95,14 +84,6 @@ const SidebarTitle = styled(Typography)(({ theme }) => ({
   fontWeight: 'bold'
 }));
 
-const socket = io(import.meta.env.VITE_APP_API_URL, {
-  reconnection: true,
-  reconnectionAttempts: 5,
-  reconnectionDelay: 1000,
-  transports: ['websocket', 'polling'],
-  timeout: 10000,
-  namespace: '/messages'
-});
 
 export default function ChatLayout() {
   const location = useLocation();
@@ -134,112 +115,6 @@ export default function ChatLayout() {
     fetchChats();
   }, []);
 
-  // useEffect(() => {
-  //   // Connect to socket
-  //   socket.on('connect', () => {
-  //     console.log('Connected to the server');
-  //   });
-
-  //   socket.on('connect_error', (error) => {
-  //     console.error('Socket connection error:', error);
-  //   });
-
-  //   // Fetch tickets and messages
-  //   fetchTickets();
-
-  //   // Listen for incoming messages
-  //   socket.on('received', (message) => {
-  //     setMessages((prevMessages) => ({
-  //       ...prevMessages,
-  //       [message.ticket_id]: [
-  //         ...(prevMessages[message.ticket_id] || []),
-  //         {
-  //           id: message.message_id,
-  //           type: message.sender_type === 'Agent' ? 'sent' : 'received',
-  //           sender: message.sender_type,
-  //           text: message.message_content,
-  //           timestamp: new Date(message.createdAt).toISOString()
-  //         }
-  //       ]
-  //     }));
-  //   });
-
-  //   return () => {
-  //     socket.off('connect');
-  //     socket.off('connect_error');
-  //     socket.off('received');
-  //   };
-  // }, []);
-
-  // useEffect(() => {
-  //   if (selectedTicket) {
-  //     socket.emit('join_ticket', selectedTicket);
-  //     fetchMessages(selectedTicket);
-  //   }
-  // }, [selectedTicket]);
-
-  // const fetchTickets = async () => {
-  //   try {
-  //     const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/tickets`);
-  //     if (response.ok) {
-  //       const data = await response.json();
-  //       setTickets(data);
-  //     }
-  //   } catch (error) {
-  //     console.error('Error fetching tickets:', error);
-  //   }
-  // };
-
-  // const fetchMessages = async (ticketId) => {
-  //   try {
-  //     const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/chats/${ticketId}`);
-  //     if (response.ok) {
-  //       const data = await response.json();
-  //       setMessages((prevMessages) => ({
-  //         ...prevMessages,
-  //         [ticketId]: data.map((msg) => ({
-  //           id: msg.message_id,
-  //           type: msg.sender_type === 'Agent' ? 'sent' : 'received',
-  //           sender: msg.sender_type,
-  //           text: msg.message_content,
-  //           timestamp: new Date(msg.createdAt).toISOString()
-  //         }))
-  //       }));
-  //     }
-  //   } catch (error) {
-  //     console.error('Error fetching messages:', error);
-  //   }
-  // };
-
-  // const handleSendMessage = () => {
-  //   if (newMessage.trim() && selectedTicket) {
-  //     const messageData = {
-  //       ticket_id: selectedTicket,
-  //       sender_id: 'agent_id', // Replace with actual agent ID
-  //       sender_type: 'Agent',
-  //       message_content: newMessage
-  //     };
-
-  //     socket.emit('send', messageData);
-
-  //     setMessages((prevMessages) => ({
-  //       ...prevMessages,
-  //       [selectedTicket]: [
-  //         ...(prevMessages[selectedTicket] || []),
-  //         {
-  //           id: Date.now(), // Temporary ID
-  //           type: 'sent',
-  //           sender: 'Agent',
-  //           text: newMessage,
-  //           timestamp: new Date().toISOString()
-  //         }
-  //       ]
-  //     }));
-
-  //     setNewMessage('');
-  //   }
-  // };
-
   const handleChatClick = (chat) => {
     setSelectedChat(chat);
     setSelectedTicket(chat.Ticket);
@@ -259,12 +134,7 @@ export default function ChatLayout() {
     }
   };
 
-  // function handleViewClick(ticketDetails) {
-  //   setSelectedTicket(ticketDetails);
-  //   setModalOpen((prevState) => !prevState);
-  //   console.log('Ticket Details:', ticketDetails);
-  //   console.log('Modal Open:', modalOpen);
-  // }
+  
 
   return (
     <ChatContainer>
@@ -319,16 +189,7 @@ export default function ChatLayout() {
                 Preview Ticket
               </Button>
             </Box>
-            {/* <Box sx={{ flexGrow: 1, marginBottom: 2, height: 'calc(100% - 120px)', position: 'relative', overflowY: 'auto' }}>
-              {messages[selectedTicket]?.map((message) => (
-                <MessageRow key={message.id} type={message.type}>
-                  <Avatar alt={message.sender} sx={{ marginRight: 1 }}>
-                    {message.sender[0]}
-                  </Avatar>
-                  <MessageBox type={message.type}>{message.text}</MessageBox>
-                </MessageRow>
-              ))}
-            </Box> */}
+            
             <Box sx={{ display: 'flex', alignItems: 'center', paddingTop: 1 }}>
               <input accept="*" type="file" id="file-upload" style={{ display: 'none' }} onChange={handleFileUpload} />
               <label htmlFor="file-upload">
@@ -364,17 +225,6 @@ export default function ChatLayout() {
         )}
       </ChatArea>
 
-      {/* Team Section */}
-      <TeamArea>
-        <SidebarTitle gutterBottom>Team</SidebarTitle>
-        {[1, 2, 3, 4].map((id) => (
-          <Box key={id} sx={{ position: 'relative', marginBottom: 2 }}>
-            <Badge variant="dot" color="success" overlap="circular" anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
-              <Avatar alt={`User ${id}`} src={`/avatar-${id}.png`} sx={{ width: 48, height: 48 }} />
-            </Badge>
-          </Box>
-        ))}
-      </TeamArea>
 
       {/* File Preview Dialog */}
       <Dialog open={openPreview} onClose={() => setOpenPreview(false)}>

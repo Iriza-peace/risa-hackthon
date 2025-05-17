@@ -1,6 +1,6 @@
 import expressAsyncHandler from "express-async-handler";
 
-import { Agent, Ticket } from "../models/_index.js";
+import { Agent, Ticket , Comment } from "../models/_index.js";
 
 const createNewTicket = expressAsyncHandler(async (req, res) => {
 	const {
@@ -14,7 +14,6 @@ const createNewTicket = expressAsyncHandler(async (req, res) => {
 		ticket_category,
 		upvotes,
 		downvotes,
-		comments,
 		ticket_description,
 		ticket_status,
 		agent_id
@@ -32,7 +31,6 @@ const createNewTicket = expressAsyncHandler(async (req, res) => {
 			ticket_category,
 			upvotes,
 			downvotes,
-			comments,
 			ticket_description,
 			ticket_status,
 			agent_id
@@ -110,7 +108,14 @@ const getAllTickets = expressAsyncHandler(async (req, res) => {
 const getSingleTicket = expressAsyncHandler(async (req, res) => {
 	const { ticketId } = req.params;
 	try {
-		const ticket = await Ticket.findByPk(ticketId);
+		const ticket = await Ticket.findByPk(ticketId, {
+			include: [
+				{
+					model: Comment,
+					as: "comment",
+				}
+			]
+		});
 		if (!ticket) {
 			return res.status(404).json({ message: "Ticket not found" });
 		}
@@ -123,7 +128,7 @@ const getSingleTicket = expressAsyncHandler(async (req, res) => {
 
 const getTicketsByIdNumber = expressAsyncHandler(async (req, res) => {
 	const { userId } = req.params;
-	
+
 	try {
 		const tickets = await Ticket.findAll({
 			where: { issuer_id_number: userId },
@@ -139,6 +144,8 @@ const getTicketsByIdNumber = expressAsyncHandler(async (req, res) => {
 		res.status(500).json({ message: "Internal server error" });
 	}
 });
+
+
 
 export {
 	createNewTicket,

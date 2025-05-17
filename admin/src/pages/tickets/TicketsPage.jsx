@@ -102,7 +102,7 @@ export default function TicketsTable() {
           national_id: ticket.issuer_id_number,
           name: ticket.issuer_full_name,
           title: ticket.ticket_title,
-          position: ticket.issuer_job_position,
+          position: ticket.issuer_location,
           assigned: ticket.agent_id ? `Agent ${ticket.agent_id}` : 'Unassigned',
           status: ticket.ticket_status,
           content: ticket.ticket_description,
@@ -148,7 +148,7 @@ export default function TicketsTable() {
                     </TableCell>
                     <TableCell>{row.name}</TableCell>
                     <TableCell>{row.title}</TableCell>
-                    <TableCell>{row.position}</TableCell>
+                    <TableCell>{row.location}</TableCell>
                     <TableCell>{row.assigned}</TableCell>
                     <TableCell>
                       <OrderStatus status={row.status} />
@@ -197,10 +197,10 @@ const headCells = [
     label: 'Title'
   },
   {
-    id: 'position',
+    id: 'location',
     align: 'left',
     disablePadding: false,
-    label: 'Position'
+    label: 'Location'
   },
   {
     id: 'assigned',

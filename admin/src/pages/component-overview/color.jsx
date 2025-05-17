@@ -56,16 +56,16 @@ export default function ComponentColor() {
         <Grid item xs={12} sm={6} md={4}>
           <MainCard title="Primary Color">
             <Stack>
-              <ColorBox bgcolor="primary.lighter" data={{ label: 'Blue-1', color: '#e6f7ff' }} title="primary.lighter" dark />
-              <ColorBox bgcolor="primary.100" data={{ label: 'Blue-2', color: '#bae7ff' }} title="primary[100]" dark />
-              <ColorBox bgcolor="primary.200" data={{ label: 'Blue-3', color: '#91d5ff' }} title="primary[200]" dark />
-              <ColorBox bgcolor="primary.light" data={{ label: 'Blue-4', color: '#69c0ff' }} title="primary.light" dark />
-              <ColorBox bgcolor="primary.400" data={{ label: 'Blue-5', color: '#40a9ff' }} title="primary[400]" />
-              <ColorBox bgcolor="primary.main" data={{ label: 'Blue-6', color: '#1890ff' }} title="primary.main" main />
-              <ColorBox bgcolor="primary.dark" data={{ label: 'Blue-7', color: '#096dd9' }} title="primary.dark" />
-              <ColorBox bgcolor="primary.700" data={{ label: 'Blue-8', color: '#0050b3' }} title="primary[700]" />
-              <ColorBox bgcolor="primary.darker" data={{ label: 'Blue-9', color: '#003a8c' }} title="primary.darker" />
-              <ColorBox bgcolor="primary.900" data={{ label: 'Blue-10', color: '#002766' }} title="primary.900" />
+              <ColorBox bgcolor="primary.lighter" data={{ label: 'Orange-1', color: '#fff3e6' }} title="primary.lighter" dark />
+              <ColorBox bgcolor="primary.100" data={{ label: 'Orange-2', color: '#ffe0bf' }} title="primary[100]" dark />
+              <ColorBox bgcolor="primary.200" data={{ label: 'Orange-3', color: '#ffc799' }} title="primary[200]" dark />
+              <ColorBox bgcolor="primary.light" data={{ label: 'Orange-4', color: '#ffae66' }} title="primary.light" dark />
+              <ColorBox bgcolor="primary.400" data={{ label: 'Orange-5', color: '#ff9440' }} title="primary[400]" />
+              <ColorBox bgcolor="primary.main" data={{ label: 'Orange-6', color: '#ff7a00' }} title="primary.main" main />
+              <ColorBox bgcolor="primary.dark" data={{ label: 'Orange-7', color: '#e66900' }} title="primary.dark" />
+              <ColorBox bgcolor="primary.700" data={{ label: 'Orange-8', color: '#b35400' }} title="primary[700]" />
+              <ColorBox bgcolor="primary.darker" data={{ label: 'Orange-9', color: '#803f00' }} title="primary.darker" />
+              <ColorBox bgcolor="primary.900" data={{ label: 'Orange-10', color: '#4d2900' }} title="primary.900" />
             </Stack>
           </MainCard>
         </Grid>

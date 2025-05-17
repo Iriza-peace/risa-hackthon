@@ -29,15 +29,3 @@ export function verifyToken(req, res, next) {
 	}
 }
 
-/* TO WORK ON
-export function verifyAdmin(req, res, next) {
-	try {
-		if (req.user.agentRole !== "admin") {
-			return res.status(403).json({ message: "Access denied: Admins only" });
-		}
-		next();
-	} catch (err) {
-		console.error(err);
-	}
-}
-*/

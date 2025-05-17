@@ -2,9 +2,10 @@ import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 
 // material-ui
-import { ButtonBase } from '@mui/material';
+import { ButtonBase, Box } from '@mui/material';
 import Stack from '@mui/material/Stack';
 import Chip from '@mui/material/Chip';
+
 
 //project import
 // import Logo from '../../assets/images/logo/logo.png';
@@ -16,7 +17,19 @@ const LogoSection = ({ sx, to }) => {
   return (
     <ButtonBase disableRipple component={Link} to={!to ? config.defaultPath : to} sx={sx}>
       <Stack direction="row" spacing={1} alignItems="center">
-        {/* <img width={48} height={48} src={Logo} alt="logo" /> */}
+        <Box 
+                      component="span" 
+                      sx={{ 
+                        bgcolor: 'primary.main', 
+                        color: 'white', 
+                        // borderRadius: '4px', 
+                        px: 1, 
+                        m:3,
+                        
+                      }}
+                    >
+                      NSOBANURIRA
+                    </Box>
       </Stack>
     </ButtonBase>
   );
