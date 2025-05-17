@@ -1,0 +1,20 @@
+{
+	"name": "ippis-support",
+	"version": "1.0.0",
+	"main": "index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"server": "npm run dev --prefix backend",
+		"client": "npm start --prefix frontend",
+		"docs": "npm run dev --prefix documentation-frontend",
+		"install": "npm install --prefix backend & npm install --prefix documentation-frontend & npm install --prefix frontend"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"description": "",
+	"dependencies": {
+		"multer": "^1.4.5-lts.2",
+		"socket.io-client": "^4.8.1"
+	}
+}
