@@ -1,87 +1,78 @@
-# MVP FOR CITIZEN COMPLAINTS AND ENGAGEMENT
-## Description
-The IPPIS Support and Ticket Management System is a comprehensive solution designed to streamline support requests and ticket handling within the Integrated Payroll and Personnel Information System (IPPIS). This system facilitates efficient communication, tracking, and resolution of user issues, ensuring timely assistance and enhanced user satisfaction. It comprises two primary components:
 
-* Support System: Provides a centralized platform for users to submit support queries and receive assistance.
+# NSOBANURIRA — Complaint Platform
 
-* Ticket Management System: Tracks and manages submitted tickets, enabling administrators and support staff to monitor progress and resolve issues systematically.
+## Description  
+Most local rwandans face challenges when trying to complain about problems because:  
+- It is time-consuming  
+- Leaders often ignore or ghost them  
+- Lack of technical skills to navigate complex systems   
 
-## Getting Started
+**NSOBANURIRA** offers a simple, engaging, social media–style platform where:  
+- Citizens can post complaints **no logging required**  
+- Other citizens can comment, support, and share experiences  
+- Complaints are routed to the **government departments**  
 
-### [Figma Design Link](https://www.figma.com/design/367POtmT2TsJ0HpirjviBn/SUPPORT?m=auto&t=CrnksYIkd4S7DFRS-6)
+An **admin dashboard** allows different departments to:  
+- Track and resolve complaints efficiently  
+- Chat with citizens directly through complaint comments. 
+
+This platform makes complaint filing quick, accessible, and transparent, ensuring citizens are heard and problems get solved faster.
+
+---
+
+## Features  
+- No login required for citizens to post complaints  
+- Social media-like interface for easy engagement  
+- Auto-routing of complaints to relevant government departments  
+- Admin dashboard for complaint management and resolution  
+- Real-time comment/chat functionality between citizens and admins  
 
 
-### Dependencies
-* Operating System: Windows 10, macOS, or Linux
+---
 
-* Node.js (version 18.x or above)
+## Tech Stack (suggested)  
+- Frontend(Complainter): React / Next js / Typescript  
+- Backend: Node.js 
+- Database: MYSQL  
 
-* npm package manager
+---
 
-* A modern web browser (e.g., Chrome, Firefox)
+## How to Run
+1. Clone Repository
+2. Install dependencies  
+3. Run backend server 
+#### cd backend
+#### npm install
+#### Reference .env.example to make .env file
+#### npm run dev
+4. Run frontend application (client) 
+### cd client
+### npm install
+### Copy paste from .env.example to make .env file
+### npm run dev
+5. Run frontend admin application
+### cd admin 
+### npm install
+### Copy paste from .env.example to make .env file
+### npm start
+### Go to .env and copy and paste the mock api for agents in browser
+### Take email and a password from one of employee
+### Use Details to log in into add Dashboard
 
-* Database: MySQl database
 
-Other libraries as specified in package.json
+## Major Features to Explore
+### Client(Complainter)
+-Post a new Complaint
+-Engage on other complaints 
+- See your submissions with national ID that you sent during new complaint
+- See comments on your complaint from government department or other citizens 
 
-### Installing
-* Clone Repository
- ```
-git clone https://github.com/furahaderick/mifotra-support-portal.git
- ```
-* Navigate to project Directory
- ```
-cd mifotra-support-portal
- ```
-* Install Dependencies
- ```
-npm install
- ```
-### Executing program
-* Running backend
-```
-npm run server
-```
-* Running frontend-admin
-```
-npm start
-```
-* Running frontend self-support portal
-```
-npm run docs
-```
-NB: Refer to the system package.json
+### Government admin
+- Log in with mock api
+- See all tickets(complaints)
+- See analytics like chats(comments) vs tickets 
+- Preview Complaints
+- Mark them as solved 
+- Comment(chat) to the tickets
 
-### Frontend (Admin) Features
-
-* Authentication powered by IPPIS API
-* Analytics dashboard
-* Tickets' management (view tickets, transfer tickets and resolve tickets)
-* Articles' management (view articles, edit articles, unpublish articles)
-
-### Frontend (Users self-service) Features
-
-* Submit Tickets(send tickets to MIFOTRA support department)
-* Knowledge-base & FAQs for IPPIS modules and related categories
-
-### Backend Features
-
-* Login with JWT, for members of the support team
-* Articles management
-* Tickets management
-* Module categories' management
-
-### Uncompleted features
-* #### Transfer tickets
-  * Logic for transfering chats by department or support team member (frontend client)
-  * Backend logic for storing ticket status and properties
-* #### Chat integration
-  * Support team's chat interface
-  * Self-support user chat via chat widget (chatbot)
-  * Chats and messages' backend management
-
-## Authors and Support Contact
-
-Contributors
-- [Iriza Peace Mary Amizero](mailto:irizapeace3@gmail.com)
 

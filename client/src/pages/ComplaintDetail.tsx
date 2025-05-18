@@ -12,8 +12,8 @@ import {
 } from "@mui/material";
 import { ArrowLeft } from "lucide-react";
 import ComplaintCard from "../components/ComplaintCard";
-import { getComplaintById } from "../utils/mockData";
-import { formatDate } from "date-fns";
+// import { getComplaintById } from "../utils/mockData";
+// import { formatDate } from "date-fns";
 
 interface Comment {
   ticket_id: number;

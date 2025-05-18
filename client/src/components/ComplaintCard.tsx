@@ -78,20 +78,20 @@ const ComplaintCard = ({ complaint, isDetailed = false }) => {
   const statusInfo =
     STATUSES.find((s) => s.value === complaint.ticket_status) || STATUSES[0];
 
-  const handleVote = (type) => {
+  const handleVote = (type: string) => {
     if (type === "up") {
       setUpvoted(!upvoted);
-      setUpvotes((prev) => prev + (upvoted ? -1 : 1));
+      setUpvotes((prev: string | number) => prev + (upvoted ? -1 : 1));
       if (downvoted) {
         setDownvoted(false);
-        setDownvotes((prev) => prev - 1);
+        setDownvotes((prev: number) => prev - 1);
       }
     } else {
       setDownvoted(!downvoted);
-      setDownvotes((prev) => prev + (downvoted ? -1 : 1));
+      setDownvotes((prev: string | number) => prev + (downvoted ? -1 : 1));
       if (upvoted) {
         setUpvoted(false);
-        setUpvotes((prev) => prev - 1);
+        setUpvotes((prev: number) => prev - 1);
       }
     }
   };
@@ -105,7 +105,7 @@ const ComplaintCard = ({ complaint, isDetailed = false }) => {
     }
   }, [isDetailed, complaint.ticket_id]);
 
-  const handleCommentChange = (e) => {
+  const handleCommentChange = (e: { target: { value: React.SetStateAction<string>; }; }) => {
     setNewCommentContent(e.target.value);
     if (!commentAuthorName && !isPromptingName && e.target.value.trim()) {
       setIsPromptingName(true);
@@ -145,12 +145,12 @@ const ComplaintCard = ({ complaint, isDetailed = false }) => {
     }
   };
 
-  const handleReplyClick = (comment) => {
+  const handleReplyClick = (comment: React.SetStateAction<null>) => {
     setReplyToComment(comment);
     setShowCommentField(true);
   };
 
-  const timeSince = (date) => {
+  const timeSince = (date: string | number | Date) => {
     if (!date) return "N/A";
     return formatDistanceToNow(new Date(date), { addSuffix: true });
   };
@@ -174,7 +174,7 @@ const ComplaintCard = ({ complaint, isDetailed = false }) => {
   const { topLevelComments, repliesMap } = organizeComments();
 
   // Render a comment with its replies
-  const renderComment = (comment, isReply = false) => {
+  const renderComment = (comment: never, isReply = false) => {
     const replies = repliesMap[comment.comment_id] || [];
 
     return (
