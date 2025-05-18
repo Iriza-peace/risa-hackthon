@@ -39,7 +39,7 @@ This platform makes complaint filing quick, accessible, and transparent, ensurin
 ---
 
 ## How to Run
-1. Clone Repository
+1. Clone Repository **git clone https://github.com/Iriza-peace/risa-hackthon.git**
 2. Install dependencies  
 3. Run backend server 
 -  cd backend
