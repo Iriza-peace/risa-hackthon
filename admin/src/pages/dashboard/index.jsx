@@ -1,4 +1,4 @@
-// material-ui
+
 import Avatar from '@mui/material/Avatar';
 import AvatarGroup from '@mui/material/AvatarGroup';
 import Button from '@mui/material/Button';
@@ -16,8 +16,7 @@ import Box from '@mui/material/Box';
 import MainCard from 'components/MainCard';
 import AnalyticEcommerce from 'components/cards/statistics/AnalyticEcommerce';
 import UniqueVisitorCard from './UniqueVisitorCard';
-import SupportTeam from './SupportTeam';
-import TicketsAnalytics from './PieChart';
+
 
 // assets
 import GiftOutlined from '@ant-design/icons/GiftOutlined';
@@ -52,17 +51,12 @@ export default function DashboardDefault() {
     <Grid container rowSpacing={4.5} columnSpacing={2.75}>
       {/* row 1 */}
       <Grid item xs={12} sm={6} md={4} lg={3}>
-        <AnalyticEcommerce title="Charts Answered" count="4,412"/>
+        <AnalyticEcommerce title="Comments Answered" count="12"/>
       </Grid>
       <Grid item xs={12} sm={6} md={4} lg={3}>
-        <AnalyticEcommerce title="Issues Answered" count="780" />
+        <AnalyticEcommerce title="Complaints Answered" count="78" />
       </Grid>
-      <Grid item xs={12} sm={6} md={4} lg={3}>
-        <AnalyticEcommerce title="Missed Chats" count="800"/>
-      </Grid>
-      <Grid item xs={12} sm={6} md={4} lg={3}>
-        <AnalyticEcommerce title="Unresolved tickets" count="318"/>
-      </Grid>
+      
 
       <Grid item md={8} sx={{ display: { sm: 'none', md: 'block', lg: 'none' } }} />
 
@@ -72,12 +66,8 @@ export default function DashboardDefault() {
       </Grid>
 
       {/* row 3*/}
-      <Grid item xs={12} md={5} lg={6}>
-        <SupportTeam />
-      </Grid>
-      <Grid item xs={12} md={5} lg={6}>
-        <TicketsAnalytics/>
-      </Grid>
+    
+
     </Grid> 
   );
 }
