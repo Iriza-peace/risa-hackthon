@@ -9,6 +9,7 @@ import {
   Box,
   Avatar,
   Chip,
+  Badge,
   IconButton,
   Button,
   Divider,
@@ -22,62 +23,7 @@ import {
   Share2,
   Clock,
 } from "lucide-react";
-import { formatDistanceToNow } from "date-fns"; // Removed import
-
-interface Comment {
-  ticket_id: number;
-  author_name: string;
-  author_avatar?: string;
-  author_type?: string;
-  content: string;
-  is_public: boolean;
-  createdAt?: string;
-}
-
-interface Ticket {
-  ticket_id: number;
-  issuer_id_number: string;
-  issuer_full_name: string;
-  issuer_avatar: string;
-  issuer_phone_number: string;
-  issuer_location: string;
-  ticket_module: string;
-  ticket_title: string;
-  upvotes: number;
-  downvotes: number;
-  comments: Comment[];
-  ticket_description: string;
-  ticket_status: string;
-  agent_id: number | null;
-  createdAt?: string; // Removed createdAt from the interface
-  images?: string[];
-}
-
-interface ComplaintCardProps {
-  complaint: Ticket;
-  isDetailed?: boolean;
-}
-
-interface Status {
-  value: string;
-  label: string;
-  color: string;
-}
-
-const STATUSES: Status[] = [
-  { value: "Received", label: "Received", color: "#FF9800" },
-  // Add other statuses and their colors based on your API
-];
-
-const StatusIcon = ({ status }: { status: string }) => {
-  switch (status) {
-    case "Received":
-      return <Clock size={16} color="#FF9800" />;
-    // Add icons for other statuses as needed
-    default:
-      return null;
-  }
-};
+import { formatDistanceToNow } from "date-fns";
 
 const StyledCardMedia = styled(CardMedia)(() => ({
   transition: "transform 0.3s ease",
@@ -86,113 +32,88 @@ const StyledCardMedia = styled(CardMedia)(() => ({
   },
 }));
 
-const ComplaintCard: React.FC<ComplaintCardProps> = ({
-  complaint,
-  isDetailed = false,
-}) => {
+const CommentBox = styled(Box)(({ theme }) => ({
+  display: "flex",
+  flexDirection: "column",
+  backgroundColor: theme.palette.grey[100],
+  padding: theme.spacing(2),
+  borderRadius: theme.shape.borderRadius,
+  marginBottom: theme.spacing(2),
+}));
+
+const STATUSES = [{ value: "Received", label: "Received", color: "#FF9800" }];
+
+const StatusIcon = ({ status }) => {
+  switch (status) {
+    case "Received":
+      return <Clock size={16} color="#FF9800" />;
+    default:
+      return null;
+  }
+};
+
+const ComplaintCard = ({ complaint, isDetailed = false }) => {
   const [upvoted, setUpvoted] = useState(false);
   const [downvoted, setDownvoted] = useState(false);
   const [upvotes, setUpvotes] = useState(complaint.upvotes);
   const [downvotes, setDownvotes] = useState(complaint.downvotes);
-  const [comments, setComments] = useState<Comment[]>([]);
+  const [comments, setComments] = useState([]);
   const [newCommentContent, setNewCommentContent] = useState("");
   const [showCommentField, setShowCommentField] = useState(false);
-  const [commentAuthorName, setCommentAuthorName] = useState<string | null>(
-    null
-  );
+  const [commentAuthorName, setCommentAuthorName] = useState(null);
   const [isPromptingName, setIsPromptingName] = useState(false);
 
   const statusInfo =
     STATUSES.find((s) => s.value === complaint.ticket_status) || STATUSES[0];
 
-  const handleUpvote = () => {
-    if (upvoted) {
-      setUpvoted(false);
-      setUpvotes((prev) => prev - 1);
-    } else {
-      setUpvoted(true);
-      setUpvotes((prev) => prev + 1);
+  const handleVote = (type) => {
+    if (type === "up") {
+      setUpvoted(!upvoted);
+      setUpvotes((prev) => prev + (upvoted ? -1 : 1));
       if (downvoted) {
         setDownvoted(false);
         setDownvotes((prev) => prev - 1);
       }
-    }
-    // In a real app, you would also make an API call to update the upvote count on the server.
-  };
-
-  const handleDownvote = () => {
-    if (downvoted) {
-      setDownvoted(false);
-      setDownvotes((prev) => prev - 1);
     } else {
-      setDownvoted(true);
-      setDownvotes((prev) => prev + 1);
+      setDownvoted(!downvoted);
+      setDownvotes((prev) => prev + (downvoted ? -1 : 1));
       if (upvoted) {
         setUpvoted(false);
         setUpvotes((prev) => prev - 1);
       }
     }
-    // In a real app, you would also make an API call to update the downvote count on the server.
-  };
-
-  const fetchComments = async () => {
-    try {
-      const res = await fetch(
-        `http://localhost:5000/api/comments/tickets/${complaint.ticket_id}`
-      );
-      if (!res.ok) {
-        console.error(`Failed to fetch comments: ${res.status}`);
-        return;
-      }
-      const data = await res.json();
-      setComments(data);
-    } catch (err) {
-      console.error("Failed to fetch comments", err);
-    }
   };
 
   useEffect(() => {
     if (isDetailed && complaint.ticket_id) {
-      fetchComments();
+      fetch(`http://localhost:5000/api/comments/tickets/${complaint.ticket_id}`)
+        .then((res) => res.json())
+        .then((data) => setComments(data))
+        .catch((err) => console.error(err));
     }
   }, [isDetailed, complaint.ticket_id]);
 
-  const handleCommentButtonClick = () => {
-    setShowCommentField(true);
-  };
-
-  const handleNewCommentChange = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    setNewCommentContent(event.target.value);
-    if (
-      event.target.value.trim() !== "" &&
-      !commentAuthorName &&
-      !isPromptingName
-    ) {
+  const handleCommentChange = (e) => {
+    setNewCommentContent(e.target.value);
+    if (!commentAuthorName && !isPromptingName && e.target.value.trim()) {
       setIsPromptingName(true);
-      const name = prompt("Please enter your name to comment:");
+      const name = prompt("Please enter your name:");
       setIsPromptingName(false);
-      if (name && name.trim() !== "") {
+      if (name?.trim()) {
         setCommentAuthorName(name.trim());
-      } else if (!name || name.trim() === "") {
-        setNewCommentContent(""); // Clear comment if name is not provided
-        setShowCommentField(false); // Optionally hide the comment field
+      } else {
+        setNewCommentContent("");
+        setShowCommentField(false);
       }
     }
   };
 
   const handleCommentSubmit = async () => {
-    if (!newCommentContent.trim() || !commentAuthorName) {
-      alert("Please enter your name and comment.");
-      return;
-    }
+    if (!newCommentContent.trim() || !commentAuthorName) return;
     try {
       const res = await fetch("http://localhost:5000/api/comments", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ticket_id: complaint.ticket_id,
           author_name: commentAuthorName,
@@ -201,28 +122,19 @@ const ComplaintCard: React.FC<ComplaintCardProps> = ({
           is_public: true,
         }),
       });
-
-      if (!res.ok) {
-        console.error(`Failed to submit comment: ${res.status}`);
-        return;
-      }
-
-      const newComment = await res.json();
-      console.log("New comment from backend:", newComment); // Debugging log
-      setComments((prevComments) => [...prevComments, newComment]);
-      console.log("New comments state:", comments); // Debugging log
+      const data = await res.json();
+      setComments((prev) => [...prev, data]);
       setNewCommentContent("");
-      setShowCommentField(false);
       setCommentAuthorName(null);
+      setShowCommentField(false);
     } catch (err) {
       console.error("Failed to submit comment", err);
     }
   };
 
-  const timeSince = (dateString: string | undefined) => {
-    // Removed function
-    if (!dateString) return "N/A";
-    return formatDistanceToNow(new Date(dateString), { addSuffix: true });
+  const timeSince = (date) => {
+    if (!date) return "N/A";
+    return formatDistanceToNow(new Date(date), { addSuffix: true });
   };
 
   return (
@@ -230,173 +142,125 @@ const ComplaintCard: React.FC<ComplaintCardProps> = ({
       sx={{
         mb: 3,
         borderRadius: 2,
-        transition: "all 0.3s ease",
-        "&:hover": {
-          boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
-        },
+        transition: "0.3s",
+        "&:hover": { boxShadow: 6 },
       }}
     >
       <CardContent>
-        <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-          <Typography variant="subtitle2" fontWeight="medium" sx={{ mr: 1 }}>
-            {complaint.issuer_full_name}
-          </Typography>
-          {complaint.createdAt && (
+        <Box display="flex" alignItems="center" justifyContent="space-between">
+          <Box display="flex" alignItems="center">
+            <Typography variant="subtitle2" fontWeight={600} mr={1}>
+              {complaint.issuer_full_name}
+            </Typography>
             <Typography variant="caption" color="text.secondary">
               {timeSince(complaint.createdAt)}
             </Typography>
-          )}
-          <Box sx={{ flexGrow: 1 }} />
+          </Box>
           <Chip
             icon={<StatusIcon status={complaint.ticket_status} />}
             label={complaint.ticket_status}
             size="small"
-            sx={{
-              bgcolor: `${statusInfo.color}20`,
-              color: statusInfo.color,
-              fontWeight: "medium",
-              "& .MuiChip-icon": {
-                color: statusInfo.color,
-              },
-            }}
+            sx={{ bgcolor: `${statusInfo.color}20`, color: statusInfo.color }}
           />
         </Box>
 
-        <Box sx={{ mb: 2 }}>
-          <Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
-            <Typography
-              variant="h6"
-              component={RouterLink}
-              to={`/complaints/${complaint.ticket_id}`}
-              sx={{
-                color: "text.primary",
-                textDecoration: "none",
-                "&:hover": {
-                  color: "primary.main",
-                  textDecoration: "none",
-                },
-              }}
-            >
-              {complaint.ticket_title}
-            </Typography>
-          </Box>
+        <Typography
+          component={RouterLink}
+          to={`/complaints/${complaint.ticket_id}`}
+          variant="h6"
+          sx={{
+            mt: 2,
+            textDecoration: "none",
+            color: "text.primary",
+            "&:hover": { color: "primary.main" },
+          }}
+        >
+          {complaint.ticket_title}
+        </Typography>
 
-          <Box sx={{ display: "flex", gap: 1, mb: 1.5 }}>
-            {complaint.ticket_module && (
-              <Chip
-                label={complaint.ticket_module}
-                size="small"
-                sx={{
-                  bgcolor: "rgba(255, 122, 0, 0.1)",
-                  color: "primary.main",
-                  fontWeight: "medium",
-                }}
-              />
-            )}
-            {complaint.issuer_location && (
-              <Chip
-                label={complaint.issuer_location}
-                size="small"
-                sx={{
-                  bgcolor: "rgba(33, 150, 243, 0.1)",
-                  color: "secondary.main",
-                  fontWeight: "medium",
-                }}
-              />
-            )}
-          </Box>
+        <Typography variant="body1" mt={1} mb={2}>
+          {complaint.ticket_description}
+        </Typography>
 
-          <Typography variant="body1" color="text.primary" sx={{ mb: 2 }}>
-            {complaint.ticket_description}
-          </Typography>
-        </Box>
-
-        {complaint.images && complaint.images.length > 0 && (
+        {complaint.images?.[0] && (
           <StyledCardMedia
             component="img"
-            height={isDetailed ? 400 : 200}
             image={complaint.images[0]}
-            alt={complaint.ticket_title}
-            sx={{
-              borderRadius: 1,
-              mb: 2,
-            }}
+            height={isDetailed ? 400 : 200}
+            sx={{ borderRadius: 1, mb: 2 }}
           />
         )}
 
-        {isDetailed && Array.isArray(comments) && comments.length > 0 && (
-          <Box sx={{ mt: 3 }}>
-            <Typography variant="h6" sx={{ mb: 2 }}>
-              Comments ({comments.length})
+        {isDetailed && (
+          <Box mt={2}>
+            <Typography variant="h6" mb={1}>
+              Comments
             </Typography>
-            {comments.map((comment) => (
-              <Box
-                key={`${comment.ticket_id}-${comment.content}`}
-                sx={{ mb: 2, pl: 0 }}
-              >
-                {" "}
-                {/* Updated key */}
-                <Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
-                  <Avatar sx={{ mr: 1 }}>
-                    {comment.author_name?.charAt(0)?.toUpperCase() ?? "?"}
-                  </Avatar>
-                  <Typography variant="subtitle2" fontWeight="medium">
+            {comments.map((comment, idx) => (
+              <CommentBox key={idx}>
+                <Box display="flex" alignItems="center" mb={1}>
+                  <Badge
+                    badgeContent={comment.author_type}
+                    color="primary"
+                    overlap="circular"
+                    anchorOrigin={{
+                    vertical: "top",
+                    horizontal: "right",
+                    }}
+                  >
+                    <Avatar sx={{ width: 44, height: 44, mr: 3}}>
+                      {comment.author_name?.[0]?.toUpperCase() || "?"}
+                    </Avatar>
+                  </Badge>
+                  <Typography fontWeight={400} >
                     {comment.author_name}
                   </Typography>
-                  {comment.author_type && (
-                    <Chip
-                      label={comment.author_type}
-                      size="small"
-                      sx={{ ml: 1 }}
-                    />
-                  )}
-                  {comment.createdAt && (
-                    <Typography variant="caption" color="text.secondary">
-                      {timeSince(comment.createdAt)}
-                    </Typography>
-                  )}
+                  
                 </Box>
-                <Typography variant="body1">{comment.content}</Typography>
-              </Box>
+                <Typography variant="body2">{comment.content}</Typography>
+                <Box sx={{ display: "flex", alignItems: "center", mt: 0.5 }}>
+                  <IconButton size="small" sx={{ p: 0.5 }}>
+                    <ThumbsUp size={14} />
+                  </IconButton>
+                  <Typography variant="caption" sx={{ mr: 1 }}>
+                    {comment.upvotes}
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ cursor: "pointer" }}
+                  >
+                    Reply
+                  </Typography>
+                </Box>
+              </CommentBox>
             ))}
           </Box>
         )}
 
         {showCommentField && (
-          <Box sx={{ mt: 2, display: "flex", alignItems: "flex-start" }}>
-            <Avatar sx={{ width: 32, height: 32, mr: 1.5, mt: 1 }}>
-              {commentAuthorName?.charAt(0)?.toUpperCase() ?? "?"}
+          <Box display="flex" mt={2}>
+            <Avatar sx={{ mr: 1 }}>
+              {commentAuthorName?.[0]?.toUpperCase() || "?"}
             </Avatar>
-            <Box sx={{ flexGrow: 1 }}>
+            <Box flexGrow={1}>
               <TextField
                 fullWidth
                 multiline
                 rows={2}
                 placeholder="Write a comment..."
                 value={newCommentContent}
-                onChange={handleNewCommentChange} // Use the new change handler
-                variant="outlined"
+                onChange={handleCommentChange}
                 size="small"
-                sx={{ mb: 1 }}
               />
-              <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}>
-                <Button
-                  size="small"
-                  onClick={() => {
-                    setShowCommentField(false);
-                    setNewCommentContent(""); // Clear input
-                    setCommentAuthorName(null); // Clear name on cancel
-                  }}
-                  sx={{ textTransform: "none" }}
-                >
+              <Box display="flex" justifyContent="flex-end" mt={1} gap={1}>
+                <Button onClick={() => setShowCommentField(false)}>
                   Cancel
                 </Button>
                 <Button
-                  size="small"
                   variant="contained"
                   onClick={handleCommentSubmit}
-                  disabled={!newCommentContent.trim() || !commentAuthorName}
-                  sx={{ textTransform: "none" }}
+                  disabled={!newCommentContent.trim()}
                 >
                   Comment
                 </Button>
@@ -408,53 +272,47 @@ const ComplaintCard: React.FC<ComplaintCardProps> = ({
 
       <Divider />
 
-      <CardActions disableSpacing sx={{ px: 2, py: 1 }}>
+      <CardActions sx={{ px: 2, py: 1 }}>
         <IconButton
-          onClick={handleUpvote}
+          onClick={() => handleVote("up")}
           color={upvoted ? "primary" : "default"}
-          aria-label="upvote"
         >
           <ThumbsUp size={20} />
         </IconButton>
-        <Typography variant="body2" sx={{ mr: 1 }}>
+        <Typography variant="body2" mr={1}>
           {upvotes}
         </Typography>
 
         <IconButton
-          onClick={handleDownvote}
+          onClick={() => handleVote("down")}
           color={downvoted ? "error" : "default"}
-          aria-label="downvote"
         >
           <ThumbsDown size={20} />
         </IconButton>
-        <Typography variant="body2" sx={{ mr: 1 }}>
+        <Typography variant="body2" mr={1}>
           {downvotes}
         </Typography>
 
-        <IconButton
-          onClick={handleCommentButtonClick} // To show the comment field
-          aria-label="comment"
-        >
+        <IconButton onClick={() => setShowCommentField(true)}>
           <MessageSquare size={20} />
         </IconButton>
-        <Typography variant="body2" sx={{ mr: 1 }}>
-          {Array.isArray(comments) ? comments.length : 0}
+        <Typography variant="body2" mr={1}>
+          {comments.length}
         </Typography>
 
-        <Box sx={{ flexGrow: 1 }} />
+        <Box flexGrow={1} />
 
         {!isDetailed && (
           <Button
             component={RouterLink}
             to={`/complaints/${complaint.ticket_id}`}
             size="small"
-            sx={{ textTransform: "none" }}
           >
             View Details
           </Button>
         )}
 
-        <IconButton aria-label="share">
+        <IconButton>
           <Share2 size={20} />
         </IconButton>
       </CardActions>
