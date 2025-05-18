@@ -18,46 +18,50 @@ const Ticket = sequelize.define(
 			type: DataTypes.STRING(255),
 			// allowNull: false,
 		},
-		issuer_avatar:{
-			type:DataTypes.STRING,
+		issuer_avatar: {
+			type: DataTypes.STRING,
 		},
 
-		
+
 		issuer_phone_number: {
 			type: DataTypes.STRING(10),
 			// allowNull: false,
 		},
-        issuer_location: {
-            type: DataTypes.STRING(32),
-            // allowNull: false,
-        },
+		issuer_location: {
+			type: DataTypes.STRING(32),
+			// allowNull: false,
+		},
 		ticket_module: {
 			type: DataTypes.STRING(25),
 			// allowNull: false,
 		},
 		ticket_title: {
 			type: DataTypes.STRING(250),
-            // allowNull: false,
+			// allowNull: false,
 		},
-		ticket_category:{
+		ticket_category: {
 			type: DataTypes.STRING(250)
 		},
-		upvotes:{
-			type:DataTypes.INTEGER,
+		upvotes: {
+			type: DataTypes.INTEGER,
 			// allowNull: false,
 
 		},
-		downvotes:{
-			type:DataTypes.INTEGER,
+		downvotes: {
+			type: DataTypes.INTEGER,
 			// allowNull: false,
 		},
-		comments:{
-			type:DataTypes.STRING,
+		comments: {
+			type: DataTypes.STRING,
 			// allowNull: false,
 		},
 		ticket_description: {
 			type: DataTypes.STRING(1055),
 			// allowNull: false,
+		},
+		images: {
+			type: DataTypes.JSON,
+			defaultValue: [],
 		},
 		ticket_status: {
 			type: DataTypes.STRING(15),

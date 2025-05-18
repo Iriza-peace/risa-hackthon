@@ -162,18 +162,18 @@ const MySubmissions: React.FC = () => {
 
           <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
             <Typography variant="body2" color="text.secondary">Pending</Typography>
-            <Typography variant="body1" fontWeight="medium">{filteredComplaints.filter(c => c.status === "Pending").length}</Typography>
+            <Typography variant="body1" fontWeight="medium">{filteredComplaints.filter(c => c.status === "Resolved").length}</Typography>
           </Box>
 
           <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
             <Typography variant="body2" color="text.secondary">In Review</Typography>
-            <Typography variant="body1" fontWeight="medium">{filteredComplaints.filter(c => c.status === "In Review").length}</Typography>
+            <Typography variant="body1" fontWeight="medium">{filteredComplaints.filter(c => c.status === "Received").length}</Typography>
           </Box>
 
-          <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+          {/* <Box sx={{ display: "flex", justifyContent: "space-between" }}>
             <Typography variant="body2" color="text.secondary">Resolved</Typography>
             <Typography variant="body1" fontWeight="medium">{filteredComplaints.filter(c => c.status === "Resolved").length}</Typography>
-          </Box>
+          </Box> */}
         </Paper>
 
         <Paper sx={{ p: 3, borderRadius: 2, mb: 3 }}>

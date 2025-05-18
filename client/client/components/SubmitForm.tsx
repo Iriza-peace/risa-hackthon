@@ -38,7 +38,8 @@ export default function SubmitForm() {
     title: "",
     category: "",
     agency: "",
-    description: ""
+    description: "",
+    
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {

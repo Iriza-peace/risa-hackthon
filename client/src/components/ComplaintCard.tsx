@@ -4,7 +4,6 @@ import {
   Card,
   CardContent,
   CardActions,
-  CardMedia,
   Typography,
   Box,
   Avatar,
@@ -25,13 +24,7 @@ import {
   CornerDownRight,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-
-const StyledCardMedia = styled(CardMedia)(() => ({
-  transition: "transform 0.3s ease",
-  "&:hover": {
-    transform: "scale(1.02)",
-  },
-}));
+import ImageCarousel from "./ImageCarousel";
 
 const CommentBox = styled(Box)(({ theme, isReply }) => ({
   display: "flex",
@@ -75,23 +68,37 @@ const ComplaintCard = ({ complaint, isDetailed = false }) => {
   const [isPromptingName, setIsPromptingName] = useState(false);
   const [replyToComment, setReplyToComment] = useState(null);
 
+  // Parse and transform image URLs
+  const imageUrls = complaint.images && Array.isArray(complaint.images) 
+    ? complaint.images.map(image => {
+        // Handle string JSON arrays
+        if (typeof image === 'string') {
+          if (image.startsWith('/uploads')) {
+            return `http://localhost:5000${image}`;
+          }
+          return image;
+        }
+        return null;
+      }).filter(Boolean)
+    : [];
+
   const statusInfo =
     STATUSES.find((s) => s.value === complaint.ticket_status) || STATUSES[0];
 
-  const handleVote = (type: string) => {
+  const handleVote = (type) => {
     if (type === "up") {
       setUpvoted(!upvoted);
-      setUpvotes((prev: string | number) => prev + (upvoted ? -1 : 1));
+      setUpvotes((prev) => prev + (upvoted ? -1 : 1));
       if (downvoted) {
         setDownvoted(false);
-        setDownvotes((prev: number) => prev - 1);
+        setDownvotes((prev) => prev - 1);
       }
     } else {
       setDownvoted(!downvoted);
-      setDownvotes((prev: string | number) => prev + (downvoted ? -1 : 1));
+      setDownvotes((prev) => prev + (downvoted ? -1 : 1));
       if (upvoted) {
         setUpvoted(false);
-        setUpvotes((prev: number) => prev - 1);
+        setUpvotes((prev) => prev - 1);
       }
     }
   };
@@ -105,7 +112,7 @@ const ComplaintCard = ({ complaint, isDetailed = false }) => {
     }
   }, [isDetailed, complaint.ticket_id]);
 
-  const handleCommentChange = (e: { target: { value: React.SetStateAction<string>; }; }) => {
+  const handleCommentChange = (e) => {
     setNewCommentContent(e.target.value);
     if (!commentAuthorName && !isPromptingName && e.target.value.trim()) {
       setIsPromptingName(true);
@@ -145,17 +152,16 @@ const ComplaintCard = ({ complaint, isDetailed = false }) => {
     }
   };
 
-  const handleReplyClick = (comment: React.SetStateAction<null>) => {
+  const handleReplyClick = (comment) => {
     setReplyToComment(comment);
     setShowCommentField(true);
   };
 
-  const timeSince = (date: string | number | Date) => {
+  const timeSince = (date) => {
     if (!date) return "N/A";
     return formatDistanceToNow(new Date(date), { addSuffix: true });
   };
 
-  // Organize comments into threads
   const organizeComments = () => {
     const topLevelComments = comments.filter((comment) => !comment.parent_id);
     const repliesMap = comments.reduce((acc, comment) => {
@@ -173,8 +179,7 @@ const ComplaintCard = ({ complaint, isDetailed = false }) => {
 
   const { topLevelComments, repliesMap } = organizeComments();
 
-  // Render a comment with its replies
-  const renderComment = (comment: never, isReply = false) => {
+  const renderComment = (comment, isReply = false) => {
     const replies = repliesMap[comment.comment_id] || [];
 
     return (
@@ -189,7 +194,7 @@ const ComplaintCard = ({ complaint, isDetailed = false }) => {
               </Typography>
             </Box>
           )}
-          
+
           <Box display="flex" alignItems="center" mb={1}>
             <Badge
               badgeContent={comment.author_type}
@@ -205,15 +210,16 @@ const ComplaintCard = ({ complaint, isDetailed = false }) => {
               </Avatar>
             </Badge>
             <Box>
-              <Typography fontWeight={400} sx={{mr:6, mb:-3}}>{comment.author_name}</Typography>
-              {/* <Typography variant="caption" color="text.secondary">
-                {timeSince(comment.createdAt)}
-              </Typography> */}
+              <Typography fontWeight={400} sx={{ mr: 6, mb: -3 }}>
+                {comment.author_name}
+              </Typography>
             </Box>
           </Box>
-          
-          <Typography variant="body2" sx={{ ml: 7 }}>{comment.content}</Typography>
-          
+
+          <Typography variant="body2" sx={{ ml: 7 }}>
+            {comment.content}
+          </Typography>
+
           <Box sx={{ display: "flex", alignItems: "center", mt: 1, ml: 7 }}>
             <IconButton size="small" sx={{ p: 0.5 }}>
               <ThumbsUp size={14} />
@@ -232,10 +238,9 @@ const ComplaintCard = ({ complaint, isDetailed = false }) => {
           </Box>
         </CommentBox>
 
-        {/* Render replies */}
         {replies.length > 0 && (
           <Box sx={{ ml: 4 }}>
-            {replies.map((reply: any) => renderComment(reply, true))}
+            {replies.map((reply) => renderComment(reply, true))}
           </Box>
         )}
       </Box>
@@ -287,12 +292,11 @@ const ComplaintCard = ({ complaint, isDetailed = false }) => {
           {complaint.ticket_description}
         </Typography>
 
-        {complaint.images?.[0] && (
-          <StyledCardMedia
-            component="img"
-            image={complaint.images[0]}
+        {imageUrls.length > 0 && (
+          <ImageCarousel
+            images={imageUrls}
             height={isDetailed ? 400 : 200}
-            sx={{ borderRadius: 1, mb: 2 }}
+            isDetailed={isDetailed}
           />
         )}
 
@@ -314,22 +318,22 @@ const ComplaintCard = ({ complaint, isDetailed = false }) => {
         {showCommentField && (
           <Box mt={3} mb={2}>
             {replyToComment && (
-              <Box 
-                sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  mb: 1, 
-                  p: 1, 
-                  bgcolor: 'grey.100', 
-                  borderRadius: 1 
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  mb: 1,
+                  p: 1,
+                  bgcolor: "grey.100",
+                  borderRadius: 1,
                 }}
               >
                 <Typography variant="body2" color="text.secondary">
                   Replying to <strong>{replyToComment.author_name}</strong>
                 </Typography>
-                <IconButton 
-                  size="small" 
-                  sx={{ ml: 1 }} 
+                <IconButton
+                  size="small"
+                  sx={{ ml: 1 }}
                   onClick={() => setReplyToComment(null)}
                 >
                   ✕
@@ -345,13 +349,17 @@ const ComplaintCard = ({ complaint, isDetailed = false }) => {
                   fullWidth
                   multiline
                   rows={2}
-                  placeholder={replyToComment ? "Write your reply..." : "Write a comment..."}
+                  placeholder={
+                    replyToComment
+                      ? "Write your reply..."
+                      : "Write a comment..."
+                  }
                   value={newCommentContent}
                   onChange={handleCommentChange}
                   size="small"
                 />
                 <Box display="flex" justifyContent="flex-end" mt={1} gap={1}>
-                  <Button 
+                  <Button
                     onClick={() => {
                       setShowCommentField(false);
                       setReplyToComment(null);
@@ -396,7 +404,12 @@ const ComplaintCard = ({ complaint, isDetailed = false }) => {
           {downvotes}
         </Typography>
 
-        <IconButton onClick={() => {setShowCommentField(true); setReplyToComment(null);}}>
+        <IconButton
+          onClick={() => {
+            setShowCommentField(true);
+            setReplyToComment(null);
+          }}
+        >
           <MessageSquare size={20} />
         </IconButton>
         <Typography variant="body2" mr={1}>

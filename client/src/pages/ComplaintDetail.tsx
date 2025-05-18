@@ -58,7 +58,7 @@ const ComplaintDetail: React.FC = () => {
 
       try {
         setLoading(true);
-        // Replace with your actual API endpoint
+       
         const response = await fetch(`http://localhost:5000/api/tickets/${id}`);
 
         if (!response.ok) {
@@ -67,10 +67,9 @@ const ComplaintDetail: React.FC = () => {
 
         const rawData = await response.json();
 
-        // Transform API response to match the structure ComplaintCard expects
+ 
         const transformedTicket: Ticket = {
           ...rawData,
-          // Handle comments: if it's a string, convert to array of Comment objects
           comments:
             typeof rawData.comments === "string"
               ? [
@@ -114,8 +113,6 @@ const ComplaintDetail: React.FC = () => {
     );
   }
 
-  // // In a real application, you would fetch the complaint data from an API
-  // const complaint = id ? getComplaintById(id) : undefined;
 
   if (error || !ticket) {
     return (
