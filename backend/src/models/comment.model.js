@@ -10,11 +10,21 @@ const Comment = sequelize.define(
       autoIncrement: true,
       primaryKey: true,
     },
-    chat_id:{
+
+    parent_id: {
       type: DataTypes.INTEGER,
-      references:{
-        model:'chats',
-        key:'chat_id'
+      allowNull: true,
+      references: {
+        model: 'comments',
+        key: 'comment_id',
+      },
+    },
+
+    chat_id: {
+      type: DataTypes.INTEGER,
+      references: {
+        model: 'chats',
+        key: 'chat_id'
       }
     },
     ticket_id: {
@@ -48,6 +58,7 @@ const Comment = sequelize.define(
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
     },
+
   },
   {
     timestamps: false,

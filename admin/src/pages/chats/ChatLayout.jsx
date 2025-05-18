@@ -13,10 +13,12 @@ import {
   Button,
   Dialog,
   DialogContent,
-  DialogTitle
+  DialogTitle,
+  Paper
 } from '@mui/material';
 import { styled } from '@mui/system';
-import { SendOutlined } from '@ant-design/icons';
+import { SendOutlined, CloseOutlined } from '@ant-design/icons';
+import { CornerDownRight } from 'lucide-react';
 import TicketModal from 'pages/tickets/TicketModal';
 
 const ChatContainer = styled(Box)(({ theme }) => ({
@@ -50,11 +52,22 @@ const MessageRow = styled(Box)(({ type }) => ({
 
 const MessageBox = styled(Box)(({ theme, type }) => ({
   maxWidth: '70%',
-  padding: theme.spacing(1),
-  borderRadius: theme.shape.borderRadius,
+  padding: theme.spacing(1, 2),
+  borderRadius: theme.spacing(1),
   backgroundColor: type === 'sent' ? theme.palette.primary.main : '#f5f5f5',
   color: type === 'sent' ? '#fff' : theme.palette.text.primary,
-  margin: type === 'sent' ? '0 0 0 16px' : '0 16px 0 0'
+  margin: type === 'sent' ? '0 0 0 16px' : '0 16px 0 0',
+  position: 'relative'
+}));
+
+const ReplyIndicator = styled(Box)(({ theme, type }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  padding: theme.spacing(0.5, 1),
+  borderRadius: theme.spacing(0.5),
+  backgroundColor: type === 'sent' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.05)',
+  marginBottom: theme.spacing(0.5),
+  fontSize: '0.8rem'
 }));
 
 const SidebarTitle = styled(Typography)(({ theme }) => ({
@@ -68,13 +81,21 @@ export default function ChatLayout() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [newMessage, setNewMessage] = useState('');
+  const [replyTo, setReplyTo] = useState(null);
   const [openPreview, setOpenPreview] = useState(false);
   const [tickets, setTickets] = useState([]);
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
-  const moduleName = selectedTicket?.ticket_module || 'Admin';
-  // Fetch all tickets on component mount
+ 
+  // Get module name from the ticket or default to "Admin"
+  const getModuleName = () => {
+    if (selectedTicket?.ticket_module) {
+      return selectedTicket.ticket_module;
+    }
+    return "Admin";
+  };
+
   useEffect(() => {
     const fetchTickets = async () => {
       try {
@@ -91,10 +112,8 @@ export default function ChatLayout() {
     fetchTickets();
   }, []);
 
-  // If we have a ticketId from the route, select that ticket
   useEffect(() => {
     if (routeTicketId) {
-      // Find ticket in our list or fetch it
       const ticket = tickets.find((t) => t.ticket_id.toString() === routeTicketId);
       if (ticket) {
         setSelectedTicket(ticket);
@@ -104,7 +123,6 @@ export default function ChatLayout() {
     }
   }, [routeTicketId, tickets]);
 
-  // When selected ticket changes, fetch messages for that ticket
   useEffect(() => {
     if (selectedTicket?.ticket_id) {
       fetchMessagesForTicket(selectedTicket.ticket_id);
@@ -129,7 +147,6 @@ export default function ChatLayout() {
   const fetchMessagesForTicket = async (ticketId) => {
     try {
       setLoading(true);
-      // Use comments endpoint if that's where chat messages are stored
       const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/comments?ticket_id=${ticketId}`);
       const data = await response.json();
       setMessages(Array.isArray(data) ? data : []);
@@ -149,12 +166,12 @@ export default function ChatLayout() {
 
     const messageData = {
       ticket_id: parseInt(selectedTicket.ticket_id),
-      // author_name: selectedTicket.assigned || 'Admin',
-      author_name: moduleName,
+      author_name: getModuleName(),
       author_avatar: 'admin_avatar_url',
       author_type: 'admin',
       content: newMessage,
-      is_public: true
+      is_public: true,
+      parent_id: replyTo?.comment_id || null
     };
 
     try {
@@ -167,8 +184,7 @@ export default function ChatLayout() {
       if (response.ok) {
         const savedMessage = await response.json();
         setNewMessage('');
-
-        // Add the new message to our list
+        setReplyTo(null);
         setMessages((prevMessages) => [
           ...prevMessages,
           {
@@ -183,14 +199,89 @@ export default function ChatLayout() {
     }
   };
 
+  const handleReplyClick = (message) => {
+    setReplyTo(message);
+  };
+
+  const cancelReply = () => {
+    setReplyTo(null);
+  };
+
+  // Organize comments into threads for display
+  const organizeMessages = () => {
+    const topLevelComments = messages.filter(m => !m.parent_id);
+    const repliesMap = {};
+    
+    messages.forEach(message => {
+      if (message.parent_id) {
+        if (!repliesMap[message.parent_id]) {
+          repliesMap[message.parent_id] = [];
+        }
+        repliesMap[message.parent_id].push(message);
+      }
+    });
+    
+    return { topLevelComments, repliesMap };
+  };
+
+  const { topLevelComments, repliesMap } = organizeMessages();
+
+  // Render a message with its replies
+  const renderMessage = (message, isReply = false) => {
+    const replies = repliesMap[message.comment_id] || [];
+    const parentMessage = isReply ? messages.find(m => m.comment_id === message.parent_id) : null;
+    const messageType = message.author_type === 'admin' ? 'sent' : 'received';
+    
+    return (
+      <Box key={message.comment_id} ml={isReply ? 4 : 0}>
+        <MessageRow type={messageType}>
+          <MessageBox type={messageType}>
+            {isReply && parentMessage && (
+              <ReplyIndicator type={messageType}>
+                <CornerDownRight size={14} style={{ marginRight: 4 }} />
+                <Typography variant="caption">
+                  Replying to {parentMessage.author_name}
+                </Typography>
+              </ReplyIndicator>
+            )}
+            
+            <Typography variant="subtitle2" fontWeight="bold">
+              {message.author_name}
+            </Typography>
+            <Typography variant="body2">{message.content}</Typography>
+            <Typography variant="caption" color={messageType === 'sent' ? 'rgba(255,255,255,0.7)' : 'textSecondary'}>
+              {new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </Typography>
+            
+            <Box mt={0.5} display="flex" gap={1}>
+              <Button 
+                size="small" 
+                sx={{ 
+                  minWidth: 'auto', 
+                  px: 1, 
+                  fontSize: '0.7rem',
+                  color: messageType === 'sent' ? 'white' : 'primary.main'
+                }}
+                onClick={() => handleReplyClick(message)}
+              >
+                Reply
+              </Button>
+            </Box>
+          </MessageBox>
+        </MessageRow>
+        
+        {/* Render replies */}
+        {replies.map(reply => renderMessage(reply, true))}
+      </Box>
+    );
+  };
+
   return (
     <ChatContainer>
       <MessagesList>
         <SidebarTitle>Active Tickets</SidebarTitle>
         {loading && tickets.length === 0 ? (
-          <Typography align="center" p={2}>
-            Loading tickets...
-          </Typography>
+          <Typography align="center" p={2}>Loading tickets...</Typography>
         ) : (
           <List>
             {tickets.map((ticket) => (
@@ -208,16 +299,17 @@ export default function ChatLayout() {
                 <ListItemAvatar>
                   <Avatar alt={ticket.issuer_full_name || 'User'} />
                 </ListItemAvatar>
-                <ListItemText primary={ticket.issuer_phone_number || 'No Number'} secondary={ticket.ticket_title || 'No Title'} />
+                <ListItemText 
+                  primary={ticket.issuer_phone_number || 'No Number'} 
+                  secondary={ticket.ticket_title || 'No Title'} 
+                />
                 <Typography variant="caption" color="textSecondary">
                   {new Date(ticket.createdAt).toLocaleDateString()}
                 </Typography>
               </ListItem>
             ))}
             {tickets.length === 0 && !loading && (
-              <Typography align="center" p={2}>
-                No tickets available
-              </Typography>
+              <Typography align="center" p={2}>No tickets available</Typography>
             )}
           </List>
         )}
@@ -231,58 +323,57 @@ export default function ChatLayout() {
               <Box ml={2} flexGrow={1}>
                 <Typography variant="h6">{selectedTicket.issuer_full_name || 'Unknown User'}</Typography>
                 <Typography variant="subtitle2" color="success.main">
-                  {selectedTicket.status || 'Active Ticket'}
+                  {selectedTicket.ticket_status || 'Active Ticket'} · Module: {getModuleName()}
                 </Typography>
               </Box>
-              <Button variant="outlined" onClick={() => setModalOpen(true)}>
-                Preview Ticket
-              </Button>
+              <Button variant="outlined" onClick={() => setModalOpen(true)}>Preview Ticket</Button>
             </Box>
 
             <Box flexGrow={1} overflow="auto" mb={2} sx={{ display: 'flex', flexDirection: 'column' }}>
               {loading ? (
-                <Typography align="center" p={2}>
-                  Loading messages...
-                </Typography>
-              ) : messages.length > 0 ? (
-                messages.map((message) => (
-                  <MessageRow key={message.comment_id} type={message.author_type === 'admin' ? 'sent' : 'received'}>
-                    <MessageBox type={message.author_type === 'admin' ? 'sent' : 'received'}>
-                      <Typography variant="subtitle2" fontWeight="bold">
-                        {message.author_name}
-                      </Typography>
-                      <Typography>{message.content}</Typography>
-                      <Typography variant="caption" color="textSecondary">
-                        {new Date(message.createdAt).toLocaleTimeString()}
-                      </Typography>
-                    </MessageBox>
-                  </MessageRow>
-                ))
+                <Typography align="center" p={2}>Loading messages...</Typography>
+              ) : topLevelComments.length > 0 ? (
+                topLevelComments.map(message => renderMessage(message))
               ) : (
-                <Typography align="center" p={2}>
-                  No messages yet
-                </Typography>
+                <Typography align="center" p={2}>No messages yet</Typography>
               )}
             </Box>
 
-            <Box display="flex" alignItems="center">
-              <TextField
-                fullWidth
-                placeholder="Type your response"
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-              />
-              <IconButton color="primary" onClick={handleSendMessage}>
-                <SendOutlined />
-              </IconButton>
+            <Box>
+              {replyTo && (
+                <Paper 
+                  variant="outlined" 
+                  sx={{ p: 1, mb: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+                >
+                  <Box display="flex" alignItems="center">
+                    <CornerDownRight size={16} style={{ marginRight: 8 }} />
+                    <Typography variant="body2">
+                      Replying to <strong>{replyTo.author_name}</strong>
+                    </Typography>
+                  </Box>
+                  <IconButton size="small" onClick={cancelReply}>
+                    <CloseOutlined />
+                  </IconButton>
+                </Paper>
+              )}
+              
+              <Box display="flex" alignItems="center">
+                <TextField
+                  fullWidth
+                  placeholder={replyTo ? "Write your reply..." : "Type your response"}
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                />
+                <IconButton color="primary" onClick={handleSendMessage}>
+                  <SendOutlined />
+                </IconButton>
+              </Box>
             </Box>
           </>
         ) : (
           <Box display="flex" flex={1} alignItems="center" justifyContent="center">
-            <Typography variant="h4" color="textSecondary">
-              No Ticket Selected
-            </Typography>
+            <Typography variant="h4" color="textSecondary">No Ticket Selected</Typography>
           </Box>
         )}
       </ChatArea>

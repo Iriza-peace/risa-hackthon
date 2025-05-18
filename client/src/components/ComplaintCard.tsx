@@ -22,6 +22,7 @@ import {
   MessageSquare,
   Share2,
   Clock,
+  CornerDownRight,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
@@ -32,13 +33,23 @@ const StyledCardMedia = styled(CardMedia)(() => ({
   },
 }));
 
-const CommentBox = styled(Box)(({ theme }) => ({
+const CommentBox = styled(Box)(({ theme, isReply }) => ({
   display: "flex",
   flexDirection: "column",
   backgroundColor: theme.palette.grey[100],
   padding: theme.spacing(2),
   borderRadius: theme.shape.borderRadius,
   marginBottom: theme.spacing(2),
+  marginLeft: isReply ? theme.spacing(6) : 0,
+  position: "relative",
+}));
+
+const ReplyLine = styled(Box)(({ theme }) => ({
+  position: "absolute",
+  left: -20,
+  top: 0,
+  height: "100%",
+  borderLeft: `2px solid ${theme.palette.grey[300]}`,
 }));
 
 const STATUSES = [{ value: "Received", label: "Received", color: "#FF9800" }];
@@ -62,6 +73,7 @@ const ComplaintCard = ({ complaint, isDetailed = false }) => {
   const [showCommentField, setShowCommentField] = useState(false);
   const [commentAuthorName, setCommentAuthorName] = useState(null);
   const [isPromptingName, setIsPromptingName] = useState(false);
+  const [replyToComment, setReplyToComment] = useState(null);
 
   const statusInfo =
     STATUSES.find((s) => s.value === complaint.ticket_status) || STATUSES[0];
@@ -120,21 +132,117 @@ const ComplaintCard = ({ complaint, isDetailed = false }) => {
           content: newCommentContent,
           author_type: "citizen",
           is_public: true,
+          parent_id: replyToComment?.comment_id || null,
         }),
       });
       const data = await res.json();
       setComments((prev) => [...prev, data]);
       setNewCommentContent("");
-      setCommentAuthorName(null);
       setShowCommentField(false);
+      setReplyToComment(null);
     } catch (err) {
       console.error("Failed to submit comment", err);
     }
   };
 
+  const handleReplyClick = (comment) => {
+    setReplyToComment(comment);
+    setShowCommentField(true);
+  };
+
   const timeSince = (date) => {
     if (!date) return "N/A";
     return formatDistanceToNow(new Date(date), { addSuffix: true });
+  };
+
+  // Organize comments into threads
+  const organizeComments = () => {
+    const topLevelComments = comments.filter((comment) => !comment.parent_id);
+    const repliesMap = comments.reduce((acc, comment) => {
+      if (comment.parent_id) {
+        if (!acc[comment.parent_id]) {
+          acc[comment.parent_id] = [];
+        }
+        acc[comment.parent_id].push(comment);
+      }
+      return acc;
+    }, {});
+
+    return { topLevelComments, repliesMap };
+  };
+
+  const { topLevelComments, repliesMap } = organizeComments();
+
+  // Render a comment with its replies
+  const renderComment = (comment, isReply = false) => {
+    const replies = repliesMap[comment.comment_id] || [];
+    const isSameAuthorAsParent = isReply && 
+      replyToComment && 
+      comment.author_name === replyToComment.author_name;
+
+    return (
+      <Box key={comment.comment_id}>
+        <CommentBox isReply={isReply}>
+          {isReply && <ReplyLine />}
+          {isReply && (
+            <Box display="flex" alignItems="center" mb={1}>
+              <CornerDownRight size={16} style={{ marginRight: 8 }} />
+              <Typography variant="caption" color="text.secondary">
+                Reply to {replyToComment?.author_name}
+              </Typography>
+            </Box>
+          )}
+          
+          <Box display="flex" alignItems="center" mb={1}>
+            <Badge
+              badgeContent={comment.author_type}
+              color={comment.author_type === "admin" ? "primary" : "default"}
+              overlap="circular"
+              anchorOrigin={{
+                vertical: "top",
+                horizontal: "right",
+              }}
+            >
+              <Avatar sx={{ width: 44, height: 44, mr: 2 }}>
+                {comment.author_name?.[0]?.toUpperCase() || "?"}
+              </Avatar>
+            </Badge>
+            <Box>
+              <Typography fontWeight={500}>{comment.author_name}</Typography>
+              <Typography variant="caption" color="text.secondary">
+                {timeSince(comment.createdAt)}
+              </Typography>
+            </Box>
+          </Box>
+          
+          <Typography variant="body2" sx={{ ml: 7 }}>{comment.content}</Typography>
+          
+          <Box sx={{ display: "flex", alignItems: "center", mt: 1, ml: 7 }}>
+            <IconButton size="small" sx={{ p: 0.5 }}>
+              <ThumbsUp size={14} />
+            </IconButton>
+            <Typography variant="caption" sx={{ mr: 2 }}>
+              {comment.upvotes || 0}
+            </Typography>
+            <Typography
+              variant="caption"
+              color="primary"
+              sx={{ cursor: "pointer" }}
+              onClick={() => handleReplyClick(comment)}
+            >
+              Reply
+            </Typography>
+          </Box>
+        </CommentBox>
+
+        {/* Render replies */}
+        {replies.length > 0 && (
+          <Box sx={{ ml: 4 }}>
+            {replies.map((reply: any) => renderComment(reply, true))}
+          </Box>
+        )}
+      </Box>
+    );
   };
 
   return (
@@ -192,78 +300,76 @@ const ComplaintCard = ({ complaint, isDetailed = false }) => {
         )}
 
         {isDetailed && (
-          <Box mt={2}>
-            <Typography variant="h6" mb={1}>
+          <Box mt={3}>
+            <Typography variant="h6" mb={2}>
               Comments
             </Typography>
-            {comments.map((comment, idx) => (
-              <CommentBox key={idx}>
-                <Box display="flex" alignItems="center" mb={1}>
-                  <Badge
-                    badgeContent={comment.author_type}
-                    color="primary"
-                    overlap="circular"
-                    anchorOrigin={{
-                    vertical: "top",
-                    horizontal: "right",
-                    }}
-                  >
-                    <Avatar sx={{ width: 44, height: 44, mr: 3}}>
-                      {comment.author_name?.[0]?.toUpperCase() || "?"}
-                    </Avatar>
-                  </Badge>
-                  <Typography fontWeight={400} >
-                    {comment.author_name}
-                  </Typography>
-                  
-                </Box>
-                <Typography variant="body2">{comment.content}</Typography>
-                <Box sx={{ display: "flex", alignItems: "center", mt: 0.5 }}>
-                  <IconButton size="small" sx={{ p: 0.5 }}>
-                    <ThumbsUp size={14} />
-                  </IconButton>
-                  <Typography variant="caption" sx={{ mr: 1 }}>
-                    {comment.upvotes}
-                  </Typography>
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    sx={{ cursor: "pointer" }}
-                  >
-                    Reply
-                  </Typography>
-                </Box>
-              </CommentBox>
-            ))}
+            {topLevelComments.length > 0 ? (
+              topLevelComments.map((comment) => renderComment(comment))
+            ) : (
+              <Typography variant="body2" color="text.secondary">
+                No comments yet. Be the first to comment!
+              </Typography>
+            )}
           </Box>
         )}
 
         {showCommentField && (
-          <Box display="flex" mt={2}>
-            <Avatar sx={{ mr: 1 }}>
-              {commentAuthorName?.[0]?.toUpperCase() || "?"}
-            </Avatar>
-            <Box flexGrow={1}>
-              <TextField
-                fullWidth
-                multiline
-                rows={2}
-                placeholder="Write a comment..."
-                value={newCommentContent}
-                onChange={handleCommentChange}
-                size="small"
-              />
-              <Box display="flex" justifyContent="flex-end" mt={1} gap={1}>
-                <Button onClick={() => setShowCommentField(false)}>
-                  Cancel
-                </Button>
-                <Button
-                  variant="contained"
-                  onClick={handleCommentSubmit}
-                  disabled={!newCommentContent.trim()}
+          <Box mt={3} mb={2}>
+            {replyToComment && (
+              <Box 
+                sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  mb: 1, 
+                  p: 1, 
+                  bgcolor: 'grey.100', 
+                  borderRadius: 1 
+                }}
+              >
+                <Typography variant="body2" color="text.secondary">
+                  Replying to <strong>{replyToComment.author_name}</strong>
+                </Typography>
+                <IconButton 
+                  size="small" 
+                  sx={{ ml: 1 }} 
+                  onClick={() => setReplyToComment(null)}
                 >
-                  Comment
-                </Button>
+                  ✕
+                </IconButton>
+              </Box>
+            )}
+            <Box display="flex">
+              <Avatar sx={{ mr: 2 }}>
+                {commentAuthorName?.[0]?.toUpperCase() || "?"}
+              </Avatar>
+              <Box flexGrow={1}>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={2}
+                  placeholder={replyToComment ? "Write your reply..." : "Write a comment..."}
+                  value={newCommentContent}
+                  onChange={handleCommentChange}
+                  size="small"
+                />
+                <Box display="flex" justifyContent="flex-end" mt={1} gap={1}>
+                  <Button 
+                    onClick={() => {
+                      setShowCommentField(false);
+                      setReplyToComment(null);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="contained"
+                    onClick={handleCommentSubmit}
+                    disabled={!newCommentContent.trim()}
+                  >
+                    {replyToComment ? "Reply" : "Comment"}
+                  </Button>
+                </Box>
               </Box>
             </Box>
           </Box>
@@ -293,7 +399,7 @@ const ComplaintCard = ({ complaint, isDetailed = false }) => {
           {downvotes}
         </Typography>
 
-        <IconButton onClick={() => setShowCommentField(true)}>
+        <IconButton onClick={() => {setShowCommentField(true); setReplyToComment(null);}}>
           <MessageSquare size={20} />
         </IconButton>
         <Typography variant="body2" mr={1}>

@@ -3,7 +3,7 @@ import Comment from "../models/comment.model.js";
 //post a comment
 
 export const addComment = async (req,res)=> {
-  const { ticket_id, author_type, content, is_public, author_name, author_avatar } = req.body;
+  const { ticket_id, author_type, content, is_public, author_name, author_avatar, parent_id } = req.body;
 
   try{
     const newComment = await Comment.create({
@@ -13,6 +13,7 @@ export const addComment = async (req,res)=> {
         is_public,
         author_name,
         author_avatar,
+        parent_id: parent_id || null,
     })
 
     res.status(201).json(newComment);
