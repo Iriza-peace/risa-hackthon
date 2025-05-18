@@ -1,4 +1,4 @@
-# IPPIS Support and Ticket Management System 
+# MVP FOR CITIZEN COMPLAINTS AND ENGAGEMENT
 ## Description
 The IPPIS Support and Ticket Management System is a comprehensive solution designed to streamline support requests and ticket handling within the Integrated Payroll and Personnel Information System (IPPIS). This system facilitates efficient communication, tracking, and resolution of user issues, ensuring timely assistance and enhanced user satisfaction. It comprises two primary components:
 
@@ -83,9 +83,5 @@ NB: Refer to the system package.json
 ## Authors and Support Contact
 
 Contributors
-- [Furaha Yves Derick Dukundane](mailto:yvesderricks@gmail.com)
-- [Iriza Peace Mary Amizero](mailto:irizapeace@gmail.com)
+- [Iriza Peace Mary Amizero](mailto:irizapeace3@gmail.com)
 
-## License
-
-This project is licensed under the license of the Ministry of Public Service and Labor, MIFOTRA.
