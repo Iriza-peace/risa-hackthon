@@ -30,8 +30,9 @@ This platform makes complaint filing quick, accessible, and transparent, ensurin
 
 ---
 
-## Tech Stack (suggested)  
-- Frontend(Complainter): React / Next js / Typescript  
+## Tech Stack  
+- Frontend(Complainter): React / Next js / Typescript / Material UI
+- Frontend(admin): React / Material UI
 - Backend: Node.js 
 - Database: MYSQL  
 
@@ -41,29 +42,29 @@ This platform makes complaint filing quick, accessible, and transparent, ensurin
 1. Clone Repository
 2. Install dependencies  
 3. Run backend server 
-#### cd backend
-#### npm install
-#### Reference .env.example to make .env file
-#### npm run dev
+-  cd backend
+- npm install
+- Reference .env.example to make .env file
+- npm run dev
 4. Run frontend application (client) 
-### cd client
-### npm install
-### Copy paste from .env.example to make .env file
-### npm run dev
+- cd client
+- npm install
+- Copy paste from .env.example to make .env file
+- npm run dev
 5. Run frontend admin application
-### cd admin 
-### npm install
-### Copy paste from .env.example to make .env file
-### npm start
-### Go to .env and copy and paste the mock api for agents in browser
-### Take email and a password from one of employee
-### Use Details to log in into add Dashboard
+- cd admin 
+- npm install
+- Copy paste from .env.example to make .env file
+- npm start
+- Go to .env and copy and paste the mock api for agents in browser
+- Take email and a password from one of employee
+- Use Details to log in into add Dashboard
 
 
 ## Major Features to Explore
 ### Client(Complainter)
--Post a new Complaint
--Engage on other complaints 
+- Post a new Complaint
+- Engage on other complaints 
 - See your submissions with national ID that you sent during new complaint
 - See comments on your complaint from government department or other citizens 
 
