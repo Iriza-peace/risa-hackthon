@@ -10,6 +10,7 @@ import {
 	getAllTickets,
 	getSingleTicket,
 	getTicketsByIdNumber,
+	updateTicketStatus,
 } from "../controllers/ticket.controller.js";
 import { verifyToken } from "../middleware/auth.middleware.js";
 
@@ -21,5 +22,6 @@ ticketRouter.route("/:ticketId").get(getSingleTicket);
 ticketRouter.route("/:ticketId/assign").put(assignTicketToAgent);
 ticketRouter.route("/:ticketId/complete").put(markTicketAsCompleted);
 ticketRouter.route("/user/:userId").get(getTicketsByIdNumber);
+ticketRouter.route("/:ticketId/status").put(updateTicketStatus);
 
 export { ticketRouter as default };

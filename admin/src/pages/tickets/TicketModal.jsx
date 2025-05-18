@@ -4,6 +4,7 @@ import { Modal, Box, Typography, Button, Divider, Grid, TextField } from '@mui/m
 import { useNavigate } from 'react-router-dom';
 import TransferTicket from './TransferTicket';
 import useAuthStore from 'store/useAuthStore';
+import useTicketStore from 'store/useTicketStore';
 
 const modalStyles = {
   position: 'absolute',
@@ -26,11 +27,45 @@ const previewStyles = {
 export default function TicketModal({ open, onClose, ticketDetails }) {
   const [previewDoc, setPreviewDoc] = useState(null);
   const [transferModalOpen, setTransferModalOpen] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
   const navigate = useNavigate();
+  const setTickets = useTicketStore((state) => state.setTickets);
+  const tickets = useTicketStore((state) => state.tickets);
 
-  // const user = useAuthStore((state) => state.userName);
-  // const userName = user?.full_name || 'Unknown User';
   const userName = useAuthStore((state) => state.userName || 'Unknown User');
+
+  const handleMarkAsResolved = async () => {
+    try {
+      setIsUpdating(true);
+      const ticketId = ticketDetails?.ticket_id || ticketDetails?.id;
+      
+      const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/tickets/${ticketId}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status: 'Resolved' })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update ticket status');
+      }
+
+      // Update local state
+      const updatedTickets = tickets.map(ticket => 
+        ticket.id === ticketId ? { ...ticket, status: 'Resolved' } : ticket
+      );
+      setTickets(updatedTickets);
+      
+      onClose();
+    } catch (error) {
+      console.error('Error updating ticket status:', error);
+      alert('Failed to update ticket status. Please try again.');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   const handleContinueToChat = () => {
     const ticketId = ticketDetails?.ticket_id || ticketDetails?.id;
     if (ticketId) {
@@ -110,8 +145,12 @@ export default function TicketModal({ open, onClose, ticketDetails }) {
           </Grid>
 
           <Box display="flex" justifyContent="center" gap={8} mt={3}>
-            <Button variant="contained" onClick={onClose}>
-              Mark as Resolved
+            <Button 
+              variant="contained" 
+              onClick={handleMarkAsResolved}
+              disabled={isUpdating || ticketDetails?.status === 'Resolved'}
+            >
+              {isUpdating ? 'Updating...' : 'Mark as Resolved'}
             </Button>
             <Button variant="outlined" onClick={handleContinueToChat}>
               Continue to Chat

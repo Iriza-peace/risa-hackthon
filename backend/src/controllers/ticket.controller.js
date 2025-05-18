@@ -145,6 +145,34 @@ const getTicketsByIdNumber = expressAsyncHandler(async (req, res) => {
 	}
 });
 
+const updateTicketStatus = expressAsyncHandler(async (req, res) => {
+	const { ticketId } = req.params;
+	const { status } = req.body;
+
+	const validStatuses = ["Received","Resolved"];
+	if (!validStatuses.includes(status)) {
+		return res.status(400).json({ message: "Invalid status" });
+	}
+
+	try {
+		const ticket = await Ticket.findByPk(ticketId);
+
+		if (!ticket) {
+			return res.status(404).json({ message: "Ticket not found" });
+		}
+
+		await Ticket.update(
+			{ ticket_status: status },
+			{ where: { ticket_id: ticketId } }
+		);
+
+		res.status(200).json({ message: `Ticket updated to "${status}" ` });
+	} catch (err) {
+		console.error(err);
+		res.status(500).json({ message: "Internal server error" });
+	}
+});
+
 
 
 export {
@@ -154,4 +182,5 @@ export {
 	getAllTickets,
 	getSingleTicket,
 	getTicketsByIdNumber,
+	updateTicketStatus,
 };
