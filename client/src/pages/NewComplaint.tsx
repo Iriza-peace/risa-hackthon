@@ -1,6 +1,4 @@
-"use client";
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -19,13 +17,23 @@ import {
   StepLabel,
   useMediaQuery,
   Alert,
+  CircularProgress,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "react-toastify";
-import { CATEGORIES } from "../utils/mockData";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
+interface Category {
+  category_id: number;
+  category_title: string;
+}
+
+interface Module {
+  module_id: number;
+  module_name: string;
+}
 
 const NewComplaint: React.FC = () => {
   const theme = useTheme();
@@ -52,6 +60,14 @@ const NewComplaint: React.FC = () => {
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [filePreviewUrls, setFilePreviewUrls] = useState<string[]>([]);
 
+  // API data
+  const [modules, setModules] = useState<Module[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [filteredCategories, setFilteredCategories] = useState<Category[]>([]);
+  const [loadingModules, setLoadingModules] = useState(false);
+  const [loadingCategories, setLoadingCategories] = useState(false);
+
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({
     idNumber: false,
@@ -66,7 +82,77 @@ const NewComplaint: React.FC = () => {
   });
   const [showSuccess, setShowSuccess] = useState(false);
 
-  const steps = ["Personal Information", "Issue Details", "Title & Category", "Media"];
+  // Reordered steps
+  const steps = [
+    "Personal Information",
+    "Title & Category",
+    "Issue Details",
+    "Media",
+  ];
+
+  // Fetch modules on component mount
+  useEffect(() => {
+    async function fetchModules() {
+      setLoadingModules(true);
+      try {
+        const res = await fetch("http://localhost:5000/api/modules");
+        if (!res.ok) throw new Error("Failed to fetch modules");
+        const data = await res.json();
+        setModules(data);
+      } catch (error) {
+        console.error("Failed to fetch modules", error);
+        toast.error("Failed to load modules");
+      } finally {
+        setLoadingModules(false);
+      }
+    }
+
+    fetchModules();
+  }, []);
+
+  // Fetch categories when module changes
+  useEffect(() => {
+    async function fetchCategories() {
+      if (!module) {
+        setFilteredCategories([]);
+        return;
+      }
+
+      setLoadingCategories(true);
+      try {
+        const res = await fetch(
+          `http://localhost:5000/api/categories/id/${module}`
+        );
+        if (!res.ok) throw new Error("Failed to fetch categories");
+        const data = await res.json();
+        setFilteredCategories(data);
+      } catch (error) {
+        console.error("Failed to fetch categories", error);
+        toast.error("Failed to load categories");
+      } finally {
+        setLoadingCategories(false);
+      }
+    }
+
+    // Also fetch all categories for initial load
+    async function fetchAllCategories() {
+      setLoadingCategories(true);
+      try {
+        const res = await fetch("http://localhost:5000/api/categories");
+        if (!res.ok) throw new Error("Failed to fetch categories");
+        const data = await res.json();
+        setCategories(data);
+      } catch (error) {
+        console.error("Failed to fetch categories", error);
+        toast.error("Failed to load categories");
+      } finally {
+        setLoadingCategories(false);
+      }
+    }
+
+    fetchAllCategories();
+    if (module) fetchCategories();
+  }, [module]);
 
   const handleNext = () => {
     const newErrors = { ...errors };
@@ -79,23 +165,29 @@ const NewComplaint: React.FC = () => {
 
       setErrors(newErrors);
 
-      if (newErrors.idNumber || newErrors.fullName || newErrors.phoneNumber || newErrors.location) return;
+      if (
+        newErrors.idNumber ||
+        newErrors.fullName ||
+        newErrors.phoneNumber ||
+        newErrors.location
+      )
+        return;
     }
 
     if (activeStep === 1) {
+      newErrors.title = title.trim() === "";
+      newErrors.category = category.trim() === "";
       newErrors.module = module.trim() === "";
-      newErrors.description = description.trim() === "";
 
       setErrors(newErrors);
-      if (newErrors.module || newErrors.description) return;
+      if (newErrors.title || newErrors.category || newErrors.module) return;
     }
 
     if (activeStep === 2) {
-      newErrors.title = title.trim() === "";
-      newErrors.category = category.trim() === "";
+      newErrors.description = description.trim() === "";
 
       setErrors(newErrors);
-      if (newErrors.title || newErrors.category) return;
+      if (newErrors.description) return;
     }
 
     setActiveStep((prev) => prev + 1);
@@ -172,8 +264,6 @@ const NewComplaint: React.FC = () => {
         body: formData,
       });
 
-  
-
       if (!response.ok) {
         toast.error("Failed to submit ticket.");
         throw new Error("Failed to submit");
@@ -191,12 +281,15 @@ const NewComplaint: React.FC = () => {
       setLoading(false);
     }
   };
-  console.log(FormData);
 
   return (
     <Grid container justifyContent="center">
       <Grid item xs={12} md={8}>
-        <Button startIcon={<ArrowLeft size={18} />} onClick={() => navigate(-1)} sx={{ mb: 2 }}>
+        <Button
+          startIcon={<ArrowLeft size={18} />}
+          onClick={() => navigate(-1)}
+          sx={{ mb: 2 }}
+        >
           Back
         </Button>
 
@@ -220,13 +313,18 @@ const NewComplaint: React.FC = () => {
 
           {showSuccess ? (
             <Alert severity="success" sx={{ mb: 2 }}>
-              Your issue has been submitted successfully! Redirecting to home page...
+              Your issue has been submitted successfully! Redirecting to home
+              page...
             </Alert>
           ) : (
             <>
               {activeStep === 0 && (
                 <Box>
-                  <Typography variant="subtitle1" fontWeight="medium" sx={{ mb: 3 }}>
+                  <Typography
+                    variant="subtitle1"
+                    fontWeight="medium"
+                    sx={{ mb: 3 }}
+                  >
                     Please provide your personal information
                   </Typography>
                   <Grid container spacing={2}>
@@ -240,7 +338,9 @@ const NewComplaint: React.FC = () => {
                           setErrors({ ...errors, idNumber: false });
                         }}
                         error={errors.idNumber}
-                        helperText={errors.idNumber ? "ID Number is required" : ""}
+                        helperText={
+                          errors.idNumber ? "ID Number is required" : ""
+                        }
                       />
                     </Grid>
                     <Grid item xs={12}>
@@ -253,7 +353,9 @@ const NewComplaint: React.FC = () => {
                           setErrors({ ...errors, fullName: false });
                         }}
                         error={errors.fullName}
-                        helperText={errors.fullName ? "Full Name is required" : ""}
+                        helperText={
+                          errors.fullName ? "Full Name is required" : ""
+                        }
                       />
                     </Grid>
                     <Grid item xs={12}>
@@ -266,7 +368,9 @@ const NewComplaint: React.FC = () => {
                           setErrors({ ...errors, phoneNumber: false });
                         }}
                         error={errors.phoneNumber}
-                        helperText={errors.phoneNumber ? "Phone Number is required" : ""}
+                        helperText={
+                          errors.phoneNumber ? "Phone Number is required" : ""
+                        }
                       />
                     </Grid>
                     <Grid item xs={12}>
@@ -279,7 +383,9 @@ const NewComplaint: React.FC = () => {
                           setErrors({ ...errors, location: false });
                         }}
                         error={errors.location}
-                        helperText={errors.location ? "Location is required" : ""}
+                        helperText={
+                          errors.location ? "Location is required" : ""
+                        }
                       />
                     </Grid>
                   </Grid>
@@ -288,53 +394,11 @@ const NewComplaint: React.FC = () => {
 
               {activeStep === 1 && (
                 <Box>
-                  <Typography variant="subtitle1" fontWeight="medium" sx={{ mb: 3 }}>
-                    Describe the issue details
-                  </Typography>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12}>
-                      <FormControl fullWidth error={errors.module}>
-                        <InputLabel id="module-label">Module</InputLabel>
-                        <Select
-                          labelId="module-label"
-                          value={module}
-                          label="Module"
-                          onChange={(e) => {
-                            setModule(e.target.value);
-                            setErrors({ ...errors, module: false });
-                          }}
-                        >
-                          {CATEGORIES.map((cat) => (
-                            <MenuItem key={cat.value} value={cat.value}>
-                              {cat.label}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                        {errors.module && <FormHelperText>Module is required</FormHelperText>}
-                      </FormControl>
-                    </Grid>
-                    <Grid item xs={12}>
-                      <TextField
-                        label="Description"
-                        multiline
-                        minRows={4}
-                        fullWidth
-                        value={description}
-                        onChange={(e) => {
-                          setDescription(e.target.value);
-                          setErrors({ ...errors, description: false });
-                        }}
-                        error={errors.description}
-                        helperText={errors.description ? "Description is required" : ""}
-                      />
-                    </Grid>
-                  </Grid>
-                </Box>
-              )}
-
-              {activeStep === 2 && (
-                <Box>
-                  <Typography variant="subtitle1" fontWeight="medium" sx={{ mb: 3 }}>
+                  <Typography
+                    variant="subtitle1"
+                    fontWeight="medium"
+                    sx={{ mb: 3 }}
+                  >
                     Provide the title and category
                   </Typography>
                   <Grid container spacing={2}>
@@ -352,7 +416,45 @@ const NewComplaint: React.FC = () => {
                       />
                     </Grid>
                     <Grid item xs={12}>
-                      <FormControl fullWidth error={errors.category}>
+                      <FormControl fullWidth error={errors.module}>
+                        <InputLabel id="module-label">Module</InputLabel>
+                        <Select
+                          labelId="module-label"
+                          value={module}
+                          label="Module"
+                          onChange={(e) => {
+                            setModule(e.target.value);
+                            setErrors({ ...errors, module: false });
+                            setCategory(""); // Reset category when module changes
+                          }}
+                        >
+                          {loadingModules ? (
+                            <MenuItem disabled>
+                              <CircularProgress size={20} />
+                              &nbsp;Loading...
+                            </MenuItem>
+                          ) : (
+                            modules.map((mod) => (
+                              <MenuItem
+                                key={mod.module_id}
+                                value={mod.module_id.toString()}
+                              >
+                                {mod.module_name}
+                              </MenuItem>
+                            ))
+                          )}
+                        </Select>
+                        {errors.module && (
+                          <FormHelperText>Module is required</FormHelperText>
+                        )}
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={12}>
+                      <FormControl
+                        fullWidth
+                        error={errors.category}
+                        disabled={!module}
+                      >
                         <InputLabel id="category-label">Category</InputLabel>
                         <Select
                           labelId="category-label"
@@ -363,14 +465,63 @@ const NewComplaint: React.FC = () => {
                             setErrors({ ...errors, category: false });
                           }}
                         >
-                          {CATEGORIES.map((cat) => (
-                            <MenuItem key={cat.value} value={cat.value}>
-                              {cat.label}
+                          {loadingCategories ? (
+                            <MenuItem disabled>
+                              <CircularProgress size={20} />
+                              &nbsp;Loading...
                             </MenuItem>
-                          ))}
+                          ) : filteredCategories.length > 0 ? (
+                            filteredCategories.map((cat) => (
+                              <MenuItem
+                                key={cat.category_id}
+                                value={cat.category_id.toString()}
+                              >
+                                {cat.category_title}
+                              </MenuItem>
+                            ))
+                          ) : (
+                            <MenuItem disabled>
+                              {module
+                                ? "No categories available for this module"
+                                : "Select a module first"}
+                            </MenuItem>
+                          )}
                         </Select>
-                        {errors.category && <FormHelperText>Category is required</FormHelperText>}
+                        {errors.category && (
+                          <FormHelperText>Category is required</FormHelperText>
+                        )}
                       </FormControl>
+                    </Grid>
+                  </Grid>
+                </Box>
+              )}
+
+              {activeStep === 2 && (
+                <Box>
+                  <Typography
+                    variant="subtitle1"
+                    fontWeight="medium"
+                    sx={{ mb: 3 }}
+                  >
+                    Describe the issue details
+                  </Typography>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12}>
+                      <TextField
+                        label="Description"
+                        multiline
+                        minRows={4}
+                        fullWidth
+                        value={description}
+                        onChange={(e) => {
+                          setDescription(e.target.value);
+                          setErrors({ ...errors, description: false });
+                        }}
+                        error={errors.description}
+                        helperText={
+                          errors.description ? "Description is required" : ""
+                        }
+                      />
                     </Grid>
                   </Grid>
                 </Box>
@@ -378,7 +529,11 @@ const NewComplaint: React.FC = () => {
 
               {activeStep === 3 && (
                 <Box>
-                  <Typography variant="subtitle1" fontWeight="medium" sx={{ mb: 3 }}>
+                  <Typography
+                    variant="subtitle1"
+                    fontWeight="medium"
+                    sx={{ mb: 3 }}
+                  >
                     Upload media (optional)
                   </Typography>
                   <input
@@ -415,7 +570,11 @@ const NewComplaint: React.FC = () => {
                           <img
                             src={url}
                             alt={`upload-preview-${idx}`}
-                            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              objectFit: "cover",
+                            }}
                           />
                           <Button
                             size="small"
@@ -438,7 +597,9 @@ const NewComplaint: React.FC = () => {
                 </Box>
               )}
 
-              <Box sx={{ mt: 4, display: "flex", justifyContent: "space-between" }}>
+              <Box
+                sx={{ mt: 4, display: "flex", justifyContent: "space-between" }}
+              >
                 <Button disabled={activeStep === 0} onClick={handleBack}>
                   Back
                 </Button>

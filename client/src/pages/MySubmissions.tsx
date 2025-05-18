@@ -19,7 +19,7 @@ interface Complaint {
   id: string;
   title: string;
   description: string;
-  status: "Pending" | "In Review" | "Resolved";
+  status: "Received" | "Resolved";
 }
 
 const MySubmissions: React.FC = () => {
@@ -27,16 +27,27 @@ const MySubmissions: React.FC = () => {
   const [tab, setTab] = useState(0);
   const [loading, setLoading] = useState(false);
   const [userComplaints, setUserComplaints] = useState<Complaint[]>([]);
-  const [userId, setUserId] = useState<string | null>(user?.id ?? null);
-
+  const [userId, setUserId] = useState<string | null>(null);
+  
+  // Always prompt for ID when component mounts
   useEffect(() => {
-    if (!userId) {
+    const promptForId = () => {
       const enteredId = prompt("SHYIRAMO INDANGAMUNTU YAWE:");
       if (enteredId) {
         setUserId(enteredId);
+      } else {
+        // If user cancels prompt, ask again
+        promptForId();
       }
-    }
-  }, [userId]);
+    };
+    
+    // Use a small timeout to ensure the prompt appears after the component renders
+    const timer = setTimeout(() => {
+      promptForId();
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const fetchUserComplaints = async () => {
@@ -56,7 +67,9 @@ const MySubmissions: React.FC = () => {
       }
     };
 
-    fetchUserComplaints();
+    if (userId) {
+      fetchUserComplaints();
+    }
   }, [userId, tab]);
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
@@ -91,8 +104,7 @@ const MySubmissions: React.FC = () => {
             variant="fullWidth"
           >
             <Tab label="All" sx={{ textTransform: "none", fontWeight: tab === 0 ? "bold" : "normal" }} />
-            <Tab icon={<Clock size={16} />} iconPosition="start" label="Pending" sx={{ textTransform: "none", fontWeight: tab === 1 ? "bold" : "normal" }} />
-            <Tab icon={<AlertTriangle size={16} />} iconPosition="start" label="In Review" sx={{ textTransform: "none", fontWeight: tab === 2 ? "bold" : "normal" }} />
+            <Tab icon={<Clock size={16} />} iconPosition="start" label="Received" sx={{ textTransform: "none", fontWeight: tab === 1 ? "bold" : "normal" }} />
             <Tab icon={<CheckCircle size={16} />} iconPosition="start" label="Resolved" sx={{ textTransform: "none", fontWeight: tab === 3 ? "bold" : "normal" }} />
           </Tabs>
         </Paper>
