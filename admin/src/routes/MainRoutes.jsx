@@ -33,7 +33,7 @@ const MainRoutes = {
       element: <TicketsPage />
     },
     {
-      path: '/chats',
+      path:'/chat/:ticketId',
       element: <ChatLayout/>
     },
     // {

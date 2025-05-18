@@ -22,12 +22,7 @@ const Ticket = sequelize.define(
 			type:DataTypes.STRING,
 		},
 
-		// issuer_email_address: {
-		// 	type: DataTypes.STRING(255),
-		// 	validate: {
-		// 		isEmail: true,
-		// 	},
-		// },
+		
 		issuer_phone_number: {
 			type: DataTypes.STRING(10),
 			// allowNull: false,

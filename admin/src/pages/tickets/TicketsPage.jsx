@@ -99,10 +99,12 @@ export default function TicketsTable() {
         const responseData = await response.json();
 
         const transformedTickets = responseData.map((ticket) => ({
+          id: ticket.ticket_id,
+          ticket_id: ticket.ticket_id,
           national_id: ticket.issuer_id_number,
           name: ticket.issuer_full_name,
           title: ticket.ticket_title,
-          position: ticket.issuer_location,
+          location: ticket.issuer_location,
           assigned: ticket.agent_id ? `Agent ${ticket.agent_id}` : 'Unassigned',
           status: ticket.ticket_status,
           content: ticket.ticket_description,
@@ -146,6 +148,7 @@ export default function TicketsTable() {
                     <TableCell component="th" id={labelId} scope="row">
                       <Link color="secondary">{row.national_id}</Link>
                     </TableCell>
+ <TableCell>{row.id}</TableCell>
                     <TableCell>{row.name}</TableCell>
                     <TableCell>{row.title}</TableCell>
                     <TableCell>{row.location}</TableCell>
@@ -178,6 +181,13 @@ export default function TicketsTable() {
 }
 
 const headCells = [
+  {
+    id: 'ticket_Id',
+    align: 'left',
+    disablePadding: false,
+    label: 'ticket ID'
+  },
+
   {
     id: 'national_id',
     align: 'left',
@@ -227,6 +237,7 @@ OrderStatus.propTypes = { status: PropTypes.string };
 TicketsTable.propTypes = {
   tickets: PropTypes.arrayOf(
     PropTypes.shape({
+
       national_id: PropTypes.number.isRequired,
       name: PropTypes.string.isRequired,
       title: PropTypes.string.isRequired,

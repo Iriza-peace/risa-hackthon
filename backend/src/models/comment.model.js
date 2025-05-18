@@ -1,7 +1,7 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "../config/db.config.js";
 import Ticket from "./ticket.model.js";
-
+import Chat from "./chat.model.js";
 const Comment = sequelize.define(
   "Comment",
   {
@@ -9,6 +9,13 @@ const Comment = sequelize.define(
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
+    },
+    chat_id:{
+      type: DataTypes.INTEGER,
+      references:{
+        model:'chats',
+        key:'chat_id'
+      }
     },
     ticket_id: {
       type: DataTypes.INTEGER,

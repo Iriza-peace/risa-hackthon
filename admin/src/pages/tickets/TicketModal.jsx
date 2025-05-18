@@ -8,7 +8,7 @@ import Divider from '@mui/material/Divider';
 import { Grid, TextField } from '@mui/material';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
-import { Link } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 import TransferTicket from './TransferTicket';
 import useAuthStore from 'store/useAuthStore';
 
@@ -38,12 +38,30 @@ const previewStyle = {
   borderRadius: 2
 };
 
-export default function TicketModal({ open, onClose, navigateToChat, ticketDetails }) {
+export default function TicketModal({ open, onClose, ticketDetails }) {
   const [previewDoc, setPreviewDoc] = useState(null);
-  const togglePreviewDoc = () => setPreviewDoc((prevState) => !prevState);
+  const togglePreviewDoc = (doc) => setPreviewDoc(doc ? doc : null);
   const [transferModalOpen, setTransferModalOpen] = useState(false);
+  const navigate = useNavigate();
 
   const userName = useAuthStore((state) => state.user?.full_name);
+
+  const handleContinueToChat = () => {
+    const ticketId = ticketDetails?.ticket_id || ticketDetails.id;
+    console.log('Navigating to chat with ID:', ticketId);
+
+    if (ticketId) {
+      onClose();
+      navigate(`/chat/${ticketId}`);
+    } else {
+      console.error('No valid ticket ID found for navigation');
+      // More detailed error message
+      alert(
+        `Error: Unable to find ticket ID for chat navigation. Available properties: id=${ticketDetails?.id}, ticket_id=${ticketDetails?.ticket_id}`
+      );
+    }
+  };
+
   return (
     <>
       <Modal open={open} onClose={onClose}>
@@ -53,35 +71,71 @@ export default function TicketModal({ open, onClose, navigateToChat, ticketDetai
             <Button variant="outlined" onClick={() => setTransferModalOpen(true)}>
               Transfer Ticket
             </Button>
-            <TransferTicket 
-            open={transferModalOpen} 
-            onClose={() => setTransferModalOpen(false)} 
-            ticketId={ticketDetails.id} />
+            <TransferTicket
+              open={transferModalOpen}
+              onClose={() => setTransferModalOpen(false)}
+              ticketId={ticketDetails?.ticket_id} // Use ticket_id for transfer as well
+            />
           </Box>
           <Divider sx={{ my: 2 }} />
 
           <Grid container spacing={2}>
-            {/* Article Title */}
+            {/* Ticket ID */}
             <Grid item xs={6}>
-              <TextField fullWidth label="Requester Name" variant="outlined" value={ticketDetails.name || 'N/A'} />
-            </Grid>
-            <Grid item xs={6}>
-              <TextField fullWidth label="Ticket Title" variant="outlined" value={ticketDetails.title || 'N/A'} />
+              <TextField fullWidth label="Ticket ID" variant="outlined" value={(ticketDetails?.ticket_id || 'N/A').toString()} />
             </Grid>
 
+            {/* Requester Name */}
             <Grid item xs={6}>
-              {/* value={ticketDetails.Agent?.agent_full_name || 'Unassigned'} /> */}
-              <TextField fullWidth label="Assigned To" variant="outlined" value={useAuthStore.getState().isAuthenticated ? useAuthStore.getState().userName : 'User'}/>
-            </Grid>
-            <Grid item xs={6}>
-              <TextField fullWidth label="Ticket Status" variant="outlined" value={ticketDetails.status || 'N/A'} />
-            </Grid>
-
-            <Grid item xs={6}>
-              <TextField fullWidth label="Position" variant="outlined" value={ticketDetails.position || 'N/A'} />
+              <TextField
+                fullWidth
+                label="Requester Name"
+                variant="outlined"
+                value={ticketDetails?.issuer_full_name || ticketDetails?.name || 'N/A'}
+              />
             </Grid>
 
-            {/**Content Preview */}
+            {/* Ticket Title */}
+            <Grid item xs={6}>
+              <TextField
+                fullWidth
+                label="Ticket Title"
+                variant="outlined"
+                value={ticketDetails.ticket_title || ticketDetails.title || 'N/A'}
+              />
+            </Grid>
+
+            {/* Assigned To */}
+            <Grid item xs={6}>
+              <TextField
+                fullWidth
+                label="Assigned To"
+                variant="outlined"
+                value={useAuthStore.getState().isAuthenticated ? useAuthStore.getState().user?.full_name : 'User'}
+              />
+            </Grid>
+
+            {/* Ticket Status */}
+            <Grid item xs={6}>
+              <TextField
+                fullWidth
+                label="Ticket Status"
+                variant="outlined"
+                value={ticketDetails.ticket_status || ticketDetails.status || 'N/A'}
+              />
+            </Grid>
+
+            {/* Location */}
+            <Grid item xs={6}>
+              <TextField
+                fullWidth
+                label="Location"
+                variant="outlined"
+                value={ticketDetails.issuer_location || ticketDetails.location || 'N/A'}
+              />
+            </Grid>
+
+            {/* Content Preview */}
             <Grid item xs={12}>
               <Typography variant="subtitle1">Content</Typography>
               <Box
@@ -92,12 +146,14 @@ export default function TicketModal({ open, onClose, navigateToChat, ticketDetai
                   minHeight: '200px',
                   overflowY: 'auto'
                 }}
-                dangerouslySetInnerHTML={{ __html: ticketDetails.content || '<p>No content available</p>' }}
+                dangerouslySetInnerHTML={{
+                  __html: ticketDetails.ticket_description || ticketDetails.content || '<p>No content available</p>'
+                }}
               />
             </Grid>
 
             {/* Documents Attached */}
-            {/* <Grid item xs={12}>
+            <Grid item xs={12}>
               <Typography variant="subtitle1">Documents Attached</Typography>
               {ticketDetails.doc && ticketDetails.doc.length > 0 ? (
                 ticketDetails.doc.map((doc, index) => (
@@ -111,14 +167,14 @@ export default function TicketModal({ open, onClose, navigateToChat, ticketDetai
                   No documents attached.
                 </Typography>
               )}
-            </Grid> */}
+            </Grid>
           </Grid>
 
           <Box display="flex" sx={{ justifyContent: 'center', gap: '10rem', mt: 2 }}>
             <Button variant="contained" sx={{ mt: 3 }} onClick={onClose}>
               Mark as Resolved
             </Button>
-            <Button variant="outlined" sx={{ mt: 3 }} onClick={navigateToChat}>
+            <Button variant="outlined" sx={{ mt: 3 }} onClick={handleContinueToChat}>
               Continue to Chat
             </Button>
           </Box>
@@ -128,12 +184,12 @@ export default function TicketModal({ open, onClose, navigateToChat, ticketDetai
       {previewDoc && (
         <Modal open={Boolean(previewDoc)} onClose={() => togglePreviewDoc(null)}>
           <Box sx={previewStyle}>
-            <Typography variant="body3" gutterBottom>
+            <Typography variant="body1" gutterBottom>
               {previewDoc.name || 'Content Name not available'}
             </Typography>
             <Divider sx={{ mb: 3 }} />
             <Box>
-              <Typography variant="body2">{previewDoc.doc || 'Opps! No content is avaible'}</Typography>
+              <Typography variant="body2">{previewDoc.doc || 'Oops! No content is available'}</Typography>
             </Box>
           </Box>
         </Modal>
@@ -141,14 +197,30 @@ export default function TicketModal({ open, onClose, navigateToChat, ticketDetai
     </>
   );
 }
+
 TicketModal.propTypes = {
   open: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   ticketDetails: PropTypes.shape({
+    id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    ticket_id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    issuer_id_number: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
     name: PropTypes.string,
+    issuer_full_name: PropTypes.string,
     title: PropTypes.string,
-    assigned: PropTypes.string,
+    ticket_title: PropTypes.string,
     status: PropTypes.string,
-    position: PropTypes.string
+    ticket_status: PropTypes.string,
+    position: PropTypes.string,
+    location: PropTypes.string,
+    issuer_location: PropTypes.string,
+    content: PropTypes.string,
+    ticket_description: PropTypes.string,
+    doc: PropTypes.arrayOf(
+      PropTypes.shape({
+        name: PropTypes.string,
+        doc: PropTypes.string
+      })
+    )
   }).isRequired
 };

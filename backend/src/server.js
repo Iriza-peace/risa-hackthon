@@ -10,6 +10,7 @@ import agentRouter from "./routes/agent.router.js";
 import moduleRouter from "./routes/module.router.js";
 import categoryRouter from "./routes/category.router.js";
 import commentRouter from "./routes/comment.router.js"
+import chatRouter from "./routes/chat.router.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -26,6 +27,7 @@ app.use("/api/agents", agentRouter);
 app.use("/api/modules", moduleRouter);
 app.use("/api/categories", categoryRouter);
 app.use("/api/comments",commentRouter)
+app.use("/api/chats",chatRouter)
 
 
 const server = http.createServer(app);

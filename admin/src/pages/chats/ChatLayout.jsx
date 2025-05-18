@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
-import { io } from 'socket.io-client';
-import { toast } from 'react-toastify';
-
+import { useLocation, useParams } from 'react-router-dom';
 import {
   Grid,
   Box,
@@ -14,36 +11,27 @@ import {
   Typography,
   TextField,
   IconButton,
-  Badge,
   Button,
   Dialog,
   DialogContent,
-  DialogTitle
+  DialogTitle,
 } from '@mui/material';
 import { styled } from '@mui/system';
 import { UploadOutlined, SendOutlined } from '@ant-design/icons';
 import TicketModal from 'pages/tickets/TicketModal';
 
-// Custom styles (unchanged)
 const ChatContainer = styled(Box)(({ theme }) => ({
   display: 'flex',
-  flexDirection: 'column',
+  flexDirection: 'row',
   height: '85vh',
   backgroundColor: '#fff',
-  [theme.breakpoints.up('md')]: {
-    flexDirection: 'row'
-  }
 }));
 
 const MessagesList = styled(Box)(({ theme }) => ({
   width: '300px',
   borderRight: '1px solid #e0e0e0',
-  height: '90vh',
   backgroundColor: '#F6F8FB',
-  [theme.breakpoints.down('sm')]: {
-    width: '100%',
-    borderRight: 'none'
-  }
+  overflowY: 'auto',
 }));
 
 const ChatArea = styled(Box)(({ theme }) => ({
@@ -52,195 +40,203 @@ const ChatArea = styled(Box)(({ theme }) => ({
   flexDirection: 'column',
   justifyContent: 'space-between',
   padding: theme.spacing(2),
-  height: '85vh',
-  position: 'relative',
-  [theme.breakpoints.down('sm')]: {
-    padding: theme.spacing(1)
-  }
 }));
-
-// 
 
 const MessageRow = styled(Box)(({ type }) => ({
   display: 'flex',
-  alignItems: 'center',
+  alignItems: 'flex-start',
   marginBottom: '8px',
-  flexDirection: type === 'sent' ? 'row-reverse' : 'row'
+  flexDirection: type === 'sent' ? 'row-reverse' : 'row',
 }));
 
 const MessageBox = styled(Box)(({ theme, type }) => ({
   maxWidth: '70%',
   padding: theme.spacing(1),
   borderRadius: theme.shape.borderRadius,
-  marginLeft: type === 'sent' ? '0' : theme.spacing(2),
-  marginRight: type === 'sent' ? theme.spacing(2) : '0',
   backgroundColor: type === 'sent' ? theme.palette.primary.main : '#f5f5f5',
-  color: type === 'sent' ? '#fff' : theme.palette.text.primary
+  color: type === 'sent' ? '#fff' : theme.palette.text.primary,
+  margin: type === 'sent' ? '0 0 0 16px' : '0 16px 0 0',
 }));
 
 const SidebarTitle = styled(Typography)(({ theme }) => ({
   padding: theme.spacing(2),
   borderBottom: '1px solid #e0e0e0',
-  fontWeight: 'bold'
+  fontWeight: 'bold',
 }));
 
-
 export default function ChatLayout() {
-  const location = useLocation();
+  const { ticketId } = useParams();
 
   const [modalOpen, setModalOpen] = useState(false);
   const [uploadedFile, setUploadedFile] = useState(null);
-  const [messages, setMessages] = useState({});
   const [newMessage, setNewMessage] = useState('');
   const [openPreview, setOpenPreview] = useState(false);
-  const [tickets, setTickets] = useState([]);
   const [chats, setChats] = useState([]);
-  const [selectedChat, setSelectedChat] = useState(location.state?.id ?? {});
+  const [selectedChat, setSelectedChat] = useState(null);
   const [selectedTicket, setSelectedTicket] = useState(null);
+  const [comments, setComments] = useState([]);
 
   useEffect(() => {
     const fetchChats = async () => {
-      const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/chats`);
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch chats');
+      try {
+        const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/chats`);
+        const data = await response.json();
+        setChats(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error('Failed to fetch chats:', error);
       }
-
-      const responseData = await response.json();
-
-      setChats(responseData);
-
-      console.log(responseData);
     };
     fetchChats();
   }, []);
 
+  useEffect(() => {
+    const fetchTicket = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/tickets/${ticketId}`);
+        const data = await response.json();
+        setSelectedTicket(data);
+      } catch (error) {
+        console.error('Failed to fetch ticket:', error);
+      }
+    };
+
+    const fetchComments = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/comments?ticket_id=${ticketId}`);
+        const data = await response.json();
+        setComments(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error('Failed to fetch comments:', error);
+      }
+    };
+
+    if (ticketId) {
+      fetchTicket();
+      fetchComments();
+    } else {
+      setComments([]);
+    }
+  }, [ticketId]);
+
   const handleChatClick = (chat) => {
     setSelectedChat(chat);
-    setSelectedTicket(chat.Ticket);
-    console.log(selectedTicket);
+    setSelectedTicket(chat?.Ticket || null);
   };
 
-  useEffect(() => {
-    console.log(selectedChat);
-    console.log(selectedTicket);
-  }, [selectedChat, selectedTicket]);
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || !ticketId) return;
 
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setUploadedFile(file);
-      // Implement file upload logic here
+    const commentData = {
+      ticket_id: parseInt(ticketId),
+      author_name: 'Admin',
+      author_avatar: 'admin_avatar_url',
+      author_type: 'admin',
+      content: newMessage,
+      is_public: true,
+    };
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(commentData),
+      });
+      if (response.ok) {
+        setNewMessage('');
+        const updatedComments = await (await fetch(`${import.meta.env.VITE_APP_API_URL}/comments?ticket_id=${ticketId}`)).json();
+        setComments(updatedComments);
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
     }
   };
 
-  
-
   return (
     <ChatContainer>
-      {/* Sidebar Messages */}
       <MessagesList>
-        <SidebarTitle>Messages</SidebarTitle>
-        <List sx={{ height: '83vh', overflowY: 'auto' }}>
-          {chats.map((chat, index) => (
+        <SidebarTitle>Active Tickets</SidebarTitle>
+        <List>
+          {chats.map((chat) => (
             <ListItem
               key={chat.chat_id}
               button
               onClick={() => handleChatClick(chat)}
               sx={{
-                border: selectedChat.chat_id === chat.chat_id ? '3px solid orange' : 'none',
-                backgroundColor: selectedChat.chat_id === chat.chat_id ? 'white' : 'none'
+                border: selectedChat?.chat_id === chat.chat_id ? '3px solid orange' : 'none',
+                backgroundColor: selectedChat?.chat_id === chat.chat_id ? '#fff' : 'transparent',
               }}
             >
               <ListItemAvatar>
-                <Avatar alt="User Avatar"></Avatar>
+                <Avatar alt="User Avatar" />
               </ListItemAvatar>
               <ListItemText
-                primary={chat.Ticket.issuer_phone_number}
-                secondary={chat.Ticket.ticket_title}
-                sx={{ flex: 1, marginLeft: 1 }}
+                primary={chat?.Ticket?.issuer_phone_number || 'No Number'}
+                secondary={chat?.Ticket?.ticket_title || 'No Title'}
               />
-              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                {/* <Typography variant="caption" color="textSecondary">
-                  hello
-                </Typography> */}
-                <Typography variant="caption" color="textSecondary">
-                  {new Date(chat.createdAt).toLocaleDateString()}
-                </Typography>
-              </Box>
+              <Typography variant="caption" color="textSecondary">
+                {new Date(chat.createdAt).toLocaleDateString()}
+              </Typography>
             </ListItem>
           ))}
         </List>
       </MessagesList>
 
-      {/* Chat Area */}
       <ChatArea>
         {selectedTicket ? (
           <>
-            <Box display="flex" alignItems="center" justifyContent="space-between" sx={{ paddingBottom: 2 }}>
+            <Box display="flex" alignItems="center" justifyContent="space-between" pb={2}>
               <Avatar />
-              <ListItemText sx={{ marginLeft: '25px' }}>
+              <Box ml={2} flexGrow={1}>
                 <Typography variant="h6">{selectedTicket.issuer_full_name}</Typography>
-                <Typography variant="subtitle2" color="success">
-                  Online
-                </Typography>
-              </ListItemText>
-              <Button variant="outlined" onClick={() => setModalOpen(true)}>
-                Preview Ticket
-              </Button>
+                <Typography variant="subtitle2" color="success.main">Active Ticket</Typography>
+              </Box>
+              <Button variant="outlined" onClick={() => setModalOpen(true)}>Preview Ticket</Button>
             </Box>
-            
-            <Box sx={{ display: 'flex', alignItems: 'center', paddingTop: 1 }}>
-              <input accept="*" type="file" id="file-upload" style={{ display: 'none' }} onChange={handleFileUpload} />
-              <label htmlFor="file-upload">
-                <IconButton color="primary" component="span">
-                  <UploadOutlined />
-                </IconButton>
-              </label>
+
+            <Box flexGrow={1} overflow="auto" mb={2}>
+              {comments.map((comment) => (
+                <MessageRow key={comment.comment_id} type={comment.author_type === 'admin' ? 'sent' : 'received'}>
+                  {/* <Avatar src={comment.author_avatar} alt={comment.author_name} /> */}
+                  <MessageBox type={comment.author_type === 'admin' ? 'sent' : 'received'}>
+                    <Typography variant="subtitle2" fontWeight="bold">{comment.author_name}</Typography>
+                    <Typography>{comment.content}</Typography>
+                    <Typography variant="caption" color="textSecondary">
+                      {new Date(comment.createdAt).toLocaleTimeString()}
+                    </Typography>
+                  </MessageBox>
+                </MessageRow>
+              ))}
+            </Box>
+
+            <Box display="flex" alignItems="center">
               <TextField
                 fullWidth
-                placeholder="Type a message"
-                variant="outlined"
-                size="large"
-                sx={{ flex: 1, marginRight: 1 }}
+                placeholder="Type your response"
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    // handleSendMessage();
-                  }
-                }}
+                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
               />
-              <IconButton color="primary" onClick={null}>
+              <IconButton color="primary" onClick={handleSendMessage}>
                 <SendOutlined />
               </IconButton>
             </Box>
           </>
         ) : (
-          <Box display="flex" sx={{ alignItems: 'center', justifyContent: 'center', paddingTop: '20rem' }}>
-            <Typography variant="h3" color="primary">
-              No Ticket Selected
-            </Typography>
+          <Box display="flex" flex={1} alignItems="center" justifyContent="center">
+            <Typography variant="h4" color="textSecondary">No Ticket Selected</Typography>
           </Box>
         )}
       </ChatArea>
 
-
-      {/* File Preview Dialog */}
       <Dialog open={openPreview} onClose={() => setOpenPreview(false)}>
         <DialogTitle>File Preview</DialogTitle>
         <DialogContent>
-          {uploadedFile && <img src={URL.createObjectURL(uploadedFile)} alt="Preview" style={{ maxWidth: '100%', maxHeight: '80vh' }} />}
+          {uploadedFile && <img src={URL.createObjectURL(uploadedFile)} alt="Preview" style={{ maxWidth: '100%' }} />}
         </DialogContent>
       </Dialog>
 
       {modalOpen && (
-        <TicketModal
-          open={modalOpen}
-          onClose={() => setModalOpen(false)}
-          // ticketDetails={tickets.find((t) => t.ticket_id === selectedTicket)}
-          ticketDetails={selectedTicket}
-        />
+        <TicketModal open={modalOpen} onClose={() => setModalOpen(false)} ticketDetails={selectedTicket} />
       )}
     </ChatContainer>
   );
