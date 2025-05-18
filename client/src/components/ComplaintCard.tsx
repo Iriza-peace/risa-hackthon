@@ -176,9 +176,6 @@ const ComplaintCard = ({ complaint, isDetailed = false }) => {
   // Render a comment with its replies
   const renderComment = (comment, isReply = false) => {
     const replies = repliesMap[comment.comment_id] || [];
-    const isSameAuthorAsParent = isReply && 
-      replyToComment && 
-      comment.author_name === replyToComment.author_name;
 
     return (
       <Box key={comment.comment_id}>
@@ -203,15 +200,15 @@ const ComplaintCard = ({ complaint, isDetailed = false }) => {
                 horizontal: "right",
               }}
             >
-              <Avatar sx={{ width: 44, height: 44, mr: 2 }}>
+              <Avatar sx={{ width: 32, height: 32, mr: 3 }}>
                 {comment.author_name?.[0]?.toUpperCase() || "?"}
               </Avatar>
             </Badge>
             <Box>
-              <Typography fontWeight={500}>{comment.author_name}</Typography>
-              <Typography variant="caption" color="text.secondary">
+              <Typography fontWeight={400} sx={{mr:6, mb:-3}}>{comment.author_name}</Typography>
+              {/* <Typography variant="caption" color="text.secondary">
                 {timeSince(comment.createdAt)}
-              </Typography>
+              </Typography> */}
             </Box>
           </Box>
           
