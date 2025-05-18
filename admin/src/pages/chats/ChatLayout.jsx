@@ -73,7 +73,7 @@ export default function ChatLayout() {
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
-  const moduleName = selectedTicket?.assigned || 'Admin';
+  const moduleName = selectedTicket?.ticket_module || 'Admin';
   // Fetch all tickets on component mount
   useEffect(() => {
     const fetchTickets = async () => {
