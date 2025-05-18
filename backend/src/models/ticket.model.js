@@ -65,8 +65,8 @@ const Ticket = sequelize.define(
 			allowNull: false,
 			validate: {
 				isIn: {
-					args: [["Received", "In Progress", "Completed"]],
-					msg: "ticket_status must be one of 'Received', 'Pending', or 'Completed'",
+					args: [["Received", "Resolved"]],
+					msg: "ticket_status must be one of 'Received', or 'Resolved'",
 				},
 			},
 		},

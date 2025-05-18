@@ -42,17 +42,13 @@ function OrderStatus({ status }) {
   let title;
 
   switch (status) {
-    case 'In Progress':
+    case 'Received':
       color = 'warning';
       title = 'In Progress';
       break;
-    case 'Completed':
+    case 'Resolved':
       color = 'success';
       title = 'Completed';
-      break;
-    case 'Received':
-      color = 'error';
-      title = 'Received';
       break;
     default:
       color = 'primary';
@@ -106,10 +102,9 @@ export default function TicketsTable() {
           title: ticket.ticket_title,
           location: ticket.issuer_location,
           assigned: ticket.ticket_module,
-          // assigned: ticket.agent_id ? `Agent ${ticket.agent_id}` : 'Unassigned',
           status: ticket.ticket_status,
           content: ticket.ticket_description,
-          doc: [] // Assuming no documents from the backend for now
+          doc: [] 
         }));
 
         setTickets(transformedTickets);
@@ -149,7 +144,7 @@ export default function TicketsTable() {
                     <TableCell component="th" id={labelId} scope="row">
                       <Link color="secondary">{row.national_id}</Link>
                     </TableCell>
- <TableCell>{row.id}</TableCell>
+
                     <TableCell>{row.name}</TableCell>
                     <TableCell>{row.title}</TableCell>
                     <TableCell>{row.location}</TableCell>
@@ -182,13 +177,7 @@ export default function TicketsTable() {
 }
 
 const headCells = [
-  {
-    id: 'ticket_Id',
-    align: 'left',
-    disablePadding: false,
-    label: 'ticket ID'
-  },
-
+ 
   {
     id: 'national_id',
     align: 'left',

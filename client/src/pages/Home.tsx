@@ -22,6 +22,7 @@ import {
   Clock,
 } from "lucide-react";
 import ComplaintCard from "../components/ComplaintCard";
+import { CATEGORIES } from "../utils/mockData";
 
 const Home: React.FC = () => {
   const theme = useTheme();
@@ -60,8 +61,8 @@ const Home: React.FC = () => {
       selectedCategory ? complaint.category_id === selectedCategory : true
     )
     .sort((a, b) => {
-      if (tab === 0) return b.upvotes - a.upvotes;           // Trending by upvotes
-      if (tab === 1) return b.ticket_id - a.ticket_id;       // Newest by ticket_id (fallback)
+      if (tab === 0) return b.upvotes - a.upvotes; // Trending by upvotes
+      if (tab === 1) return b.ticket_id - a.ticket_id; // Newest by ticket_id (fallback)
       return b.upvotes - a.upvotes;
     });
 
@@ -175,8 +176,16 @@ const Home: React.FC = () => {
 
         <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 3 }}>
           <Tabs value={tab} onChange={handleTabChange}>
-            <Tab icon={<TrendingUp size={16} />} label="Trending" iconPosition="start" />
-            <Tab icon={<Clock size={16} />} label="Newest" iconPosition="start" />
+            <Tab
+              icon={<TrendingUp size={16} />}
+              label="Trending"
+              iconPosition="start"
+            />
+            <Tab
+              icon={<Clock size={16} />}
+              label="Newest"
+              iconPosition="start"
+            />
           </Tabs>
         </Box>
 
@@ -197,7 +206,100 @@ const Home: React.FC = () => {
       </Grid>
 
       <Grid item xs={12} md={4}>
-        {/* Sidebar content omitted for brevity, same as before */}
+        <Paper
+          sx={{
+            p: 3,
+            borderRadius: 2,
+            mb: 3,
+            bgcolor: "primary.main",
+            color: "white",
+          }}
+        >
+          <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
+            Make Your Voice Heard
+          </Typography>
+          <Typography variant="body2" sx={{ mb: 2 }}>
+            Report issues in your community and help make it a better place for
+            everyone.
+          </Typography>
+          <Typography variant="body2" sx={{ fontWeight: "medium" }}>
+            Fatanya na abaturage 1,000,000 gukemura ibibazo.
+          </Typography>
+        </Paper>
+
+        <Paper sx={{ p: 3, borderRadius: 2, mb: 3 }}>
+          <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
+            Amakuru Agezweho
+          </Typography>
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="subtitle2" fontWeight="medium">
+              IBURA RY'AMAZI
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Kuki mu murenge wa gahogo tumaze ibyumweru nta amazi?
+            </Typography>
+          </Box>
+          <Divider sx={{ my: 2 }} />
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="subtitle2" fontWeight="medium">
+              INGURANE K'UBUTAKA
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Maze imyaka 19 nsezeranyijwe ubutaka, nanubu sindabona ingurane
+              yabwo...{" "}
+            </Typography>
+          </Box>
+          <Divider sx={{ my: 2 }} />
+          <Box>
+            <Typography variant="subtitle2" fontWeight="medium">
+              KWANGIRIZWA IBIKORWAREMEZO N'IBIZA
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Ntuye mu karere ka Ruhango, ariko amazu yasanywe n'ibiza...
+            </Typography>
+          </Box>
+        </Paper>
+
+        <Paper sx={{ p: 3, borderRadius: 2 }}>
+          <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
+            Issue Categories
+          </Typography>
+          {CATEGORIES.slice(0, 5).map((category, index) => (
+            <Box key={category.value} sx={{ mb: index < 4 ? 2 : 0 }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  mb: 0.5,
+                }}
+              >
+                <Typography variant="body2" fontWeight="medium">
+                  {category.label}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {Math.floor(Math.random() * 50) + 10}
+                </Typography>
+              </Box>
+              <Box
+                sx={{
+                  height: 6,
+                  borderRadius: 3,
+                  bgcolor: "rgba(0, 0, 0, 0.08)",
+                  overflow: "hidden",
+                }}
+              >
+                <Box
+                  sx={{
+                    height: "100%",
+                    width: `${Math.floor(Math.random() * 80) + 20}%`,
+                    bgcolor: "primary.main",
+                    borderRadius: 3,
+                  }}
+                />
+              </Box>
+            </Box>
+          ))}
+        </Paper>
       </Grid>
     </Grid>
   );
