@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import {
-  Grid,
   Box,
   Avatar,
   List,
@@ -17,7 +16,7 @@ import {
   DialogTitle,
 } from '@mui/material';
 import { styled } from '@mui/system';
-import { UploadOutlined, SendOutlined } from '@ant-design/icons';
+import { SendOutlined } from '@ant-design/icons';
 import TicketModal from 'pages/tickets/TicketModal';
 
 const ChatContainer = styled(Box)(({ theme }) => ({
@@ -65,69 +64,91 @@ const SidebarTitle = styled(Typography)(({ theme }) => ({
 }));
 
 export default function ChatLayout() {
-  const { ticketId } = useParams();
+  const { ticketId: routeTicketId } = useParams();
 
   const [modalOpen, setModalOpen] = useState(false);
-  const [uploadedFile, setUploadedFile] = useState(null);
   const [newMessage, setNewMessage] = useState('');
   const [openPreview, setOpenPreview] = useState(false);
-  const [chats, setChats] = useState([]);
-  const [selectedChat, setSelectedChat] = useState(null);
+  const [tickets, setTickets] = useState([]);
   const [selectedTicket, setSelectedTicket] = useState(null);
-  const [comments, setComments] = useState([]);
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(false);
 
+  // Fetch all tickets on component mount
   useEffect(() => {
-    const fetchChats = async () => {
+    const fetchTickets = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/chats`);
+        setLoading(true);
+        const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/tickets/`);
         const data = await response.json();
-        setChats(Array.isArray(data) ? data : []);
+        setTickets(Array.isArray(data) ? data : []);
+        setLoading(false);
       } catch (error) {
-        console.error('Failed to fetch chats:', error);
+        console.error('Failed to fetch tickets:', error);
+        setLoading(false);
       }
     };
-    fetchChats();
+    fetchTickets();
   }, []);
 
+  // If we have a ticketId from the route, select that ticket
   useEffect(() => {
-    const fetchTicket = async () => {
-      try {
-        const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/tickets/${ticketId}`);
-        const data = await response.json();
-        setSelectedTicket(data);
-      } catch (error) {
-        console.error('Failed to fetch ticket:', error);
+    if (routeTicketId) {
+      // Find ticket in our list or fetch it
+      const ticket = tickets.find(t => t.ticket_id.toString() === routeTicketId);
+      if (ticket) {
+        setSelectedTicket(ticket);
+      } else {
+        fetchTicketById(routeTicketId);
       }
-    };
-
-    const fetchComments = async () => {
-      try {
-        const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/comments?ticket_id=${ticketId}`);
-        const data = await response.json();
-        setComments(Array.isArray(data) ? data : []);
-      } catch (error) {
-        console.error('Failed to fetch comments:', error);
-      }
-    };
-
-    if (ticketId) {
-      fetchTicket();
-      fetchComments();
-    } else {
-      setComments([]);
     }
-  }, [ticketId]);
+  }, [routeTicketId, tickets]);
 
-  const handleChatClick = (chat) => {
-    setSelectedChat(chat);
-    setSelectedTicket(chat?.Ticket || null);
+  // When selected ticket changes, fetch messages for that ticket
+  useEffect(() => {
+    if (selectedTicket?.ticket_id) {
+      fetchMessagesForTicket(selectedTicket.ticket_id);
+    } else {
+      setMessages([]);
+    }
+  }, [selectedTicket]);
+
+  const fetchTicketById = async (id) => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/tickets/${id}`);
+      const data = await response.json();
+      setSelectedTicket(data);
+      setLoading(false);
+    } catch (error) {
+      console.error('Failed to fetch ticket details:', error);
+      setLoading(false);
+    }
+  };
+
+  const fetchMessagesForTicket = async (ticketId) => {
+    try {
+      setLoading(true);
+      // Use comments endpoint if that's where chat messages are stored
+      const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/comments?ticket_id=${ticketId}`);
+      const data = await response.json();
+      setMessages(Array.isArray(data) ? data : []);
+      setLoading(false);
+    } catch (error) {
+      console.error('Failed to fetch messages:', error);
+      setLoading(false);
+    }
+  };
+
+  const handleTicketClick = (ticket) => {
+    setSelectedTicket(ticket);
   };
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !ticketId) return;
+    if (!newMessage.trim() || !selectedTicket?.ticket_id) return;
 
-    const commentData = {
-      ticket_id: parseInt(ticketId),
+    const messageData = {
+      ticket_id: parseInt(selectedTicket.ticket_id),
       author_name: 'Admin',
       author_avatar: 'admin_avatar_url',
       author_type: 'admin',
@@ -139,12 +160,19 @@ export default function ChatLayout() {
       const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/comments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(commentData),
+        body: JSON.stringify(messageData),
       });
+
       if (response.ok) {
+        const savedMessage = await response.json();
         setNewMessage('');
-        const updatedComments = await (await fetch(`${import.meta.env.VITE_APP_API_URL}/comments?ticket_id=${ticketId}`)).json();
-        setComments(updatedComments);
+        
+        // Add the new message to our list
+        setMessages((prevMessages) => [...prevMessages, {
+          ...messageData,
+          comment_id: savedMessage.comment_id || Date.now(),
+          createdAt: savedMessage.createdAt || new Date().toISOString(),
+        }]);
       }
     } catch (error) {
       console.error('Error sending message:', error);
@@ -155,57 +183,73 @@ export default function ChatLayout() {
     <ChatContainer>
       <MessagesList>
         <SidebarTitle>Active Tickets</SidebarTitle>
-        <List>
-          {chats.map((chat) => (
-            <ListItem
-              key={chat.chat_id}
-              button
-              onClick={() => handleChatClick(chat)}
-              sx={{
-                border: selectedChat?.chat_id === chat.chat_id ? '3px solid orange' : 'none',
-                backgroundColor: selectedChat?.chat_id === chat.chat_id ? '#fff' : 'transparent',
-              }}
-            >
-              <ListItemAvatar>
-                <Avatar alt="User Avatar" />
-              </ListItemAvatar>
-              <ListItemText
-                primary={chat?.Ticket?.issuer_phone_number || 'No Number'}
-                secondary={chat?.Ticket?.ticket_title || 'No Title'}
-              />
-              <Typography variant="caption" color="textSecondary">
-                {new Date(chat.createdAt).toLocaleDateString()}
-              </Typography>
-            </ListItem>
-          ))}
-        </List>
+        {loading && tickets.length === 0 ? (
+          <Typography align="center" p={2}>Loading tickets...</Typography>
+        ) : (
+          <List>
+            {tickets.map((ticket) => (
+              <ListItem
+                key={ticket.ticket_id}
+                button
+                onClick={() => handleTicketClick(ticket)}
+                sx={{
+                  border: selectedTicket?.ticket_id === ticket.ticket_id ? '2px solid orange' : 'none',
+                  backgroundColor: selectedTicket?.ticket_id === ticket.ticket_id ? '#fff' : 'transparent',
+                  margin: '4px',
+                  borderRadius: '4px',
+                }}
+              >
+                <ListItemAvatar>
+                  <Avatar alt={ticket.issuer_full_name || 'User'} />
+                </ListItemAvatar>
+                <ListItemText
+                  primary={ticket.issuer_phone_number || 'No Number'}
+                  secondary={ticket.ticket_title || 'No Title'}
+                />
+                <Typography variant="caption" color="textSecondary">
+                  {new Date(ticket.createdAt).toLocaleDateString()}
+                </Typography>
+              </ListItem>
+            ))}
+            {tickets.length === 0 && !loading && (
+              <Typography align="center" p={2}>No tickets available</Typography>
+            )}
+          </List>
+        )}
       </MessagesList>
 
       <ChatArea>
         {selectedTicket ? (
           <>
             <Box display="flex" alignItems="center" justifyContent="space-between" pb={2}>
-              <Avatar />
+              <Avatar alt={selectedTicket.issuer_full_name || 'User'} />
               <Box ml={2} flexGrow={1}>
-                <Typography variant="h6">{selectedTicket.issuer_full_name}</Typography>
-                <Typography variant="subtitle2" color="success.main">Active Ticket</Typography>
+                <Typography variant="h6">{selectedTicket.issuer_full_name || 'Unknown User'}</Typography>
+                <Typography variant="subtitle2" color="success.main">
+                  {selectedTicket.status || 'Active Ticket'}
+                </Typography>
               </Box>
               <Button variant="outlined" onClick={() => setModalOpen(true)}>Preview Ticket</Button>
             </Box>
 
-            <Box flexGrow={1} overflow="auto" mb={2}>
-              {comments.map((comment) => (
-                <MessageRow key={comment.comment_id} type={comment.author_type === 'admin' ? 'sent' : 'received'}>
-                  {/* <Avatar src={comment.author_avatar} alt={comment.author_name} /> */}
-                  <MessageBox type={comment.author_type === 'admin' ? 'sent' : 'received'}>
-                    <Typography variant="subtitle2" fontWeight="bold">{comment.author_name}</Typography>
-                    <Typography>{comment.content}</Typography>
-                    <Typography variant="caption" color="textSecondary">
-                      {new Date(comment.createdAt).toLocaleTimeString()}
-                    </Typography>
-                  </MessageBox>
-                </MessageRow>
-              ))}
+            <Box flexGrow={1} overflow="auto" mb={2} sx={{ display: 'flex', flexDirection: 'column' }}>
+              {loading ? (
+                <Typography align="center" p={2}>Loading messages...</Typography>
+              ) : messages.length > 0 ? (
+                messages.map((message) => (
+                  <MessageRow key={message.comment_id} type={message.author_type === 'admin' ? 'sent' : 'received'}>
+                    <MessageBox type={message.author_type === 'admin' ? 'sent' : 'received'}>
+                      <Typography variant="subtitle2" fontWeight="bold">{message.author_name}</Typography>
+                      <Typography>{message.content}</Typography>
+                      <Typography variant="caption" color="textSecondary">
+                        {new Date(message.createdAt).toLocaleTimeString()}
+                      </Typography>
+                    </MessageBox>
+                  </MessageRow>
+                ))
+              ) : (
+                <Typography align="center" p={2}>No messages yet</Typography>
+              )}
             </Box>
 
             <Box display="flex" alignItems="center">
@@ -231,7 +275,7 @@ export default function ChatLayout() {
       <Dialog open={openPreview} onClose={() => setOpenPreview(false)}>
         <DialogTitle>File Preview</DialogTitle>
         <DialogContent>
-          {uploadedFile && <img src={URL.createObjectURL(uploadedFile)} alt="Preview" style={{ maxWidth: '100%' }} />}
+          {/* File preview content goes here */}
         </DialogContent>
       </Dialog>
 

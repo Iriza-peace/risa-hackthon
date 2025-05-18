@@ -36,14 +36,11 @@ const MainRoutes = {
       path:'/chat/:ticketId',
       element: <ChatLayout/>
     },
-    // {
-    //   path: '/new-article',
-    //   element: <NewArticles/>
-    // },
-    // {
-    //   path: '/articles',
-    //   element: <ArticlesTable />
-    // }
+    {
+      path:'/chats',
+      element: <ChatLayout/>
+    },
+   
   ]
 };
 

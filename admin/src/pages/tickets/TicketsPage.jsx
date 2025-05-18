@@ -105,7 +105,8 @@ export default function TicketsTable() {
           name: ticket.issuer_full_name,
           title: ticket.ticket_title,
           location: ticket.issuer_location,
-          assigned: ticket.agent_id ? `Agent ${ticket.agent_id}` : 'Unassigned',
+          assigned: ticket.ticket_module,
+          // assigned: ticket.agent_id ? `Agent ${ticket.agent_id}` : 'Unassigned',
           status: ticket.ticket_status,
           content: ticket.ticket_description,
           doc: [] // Assuming no documents from the backend for now
