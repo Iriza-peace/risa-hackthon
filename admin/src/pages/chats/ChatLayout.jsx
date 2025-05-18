@@ -13,7 +13,7 @@ import {
   Button,
   Dialog,
   DialogContent,
-  DialogTitle,
+  DialogTitle
 } from '@mui/material';
 import { styled } from '@mui/system';
 import { SendOutlined } from '@ant-design/icons';
@@ -23,14 +23,14 @@ const ChatContainer = styled(Box)(({ theme }) => ({
   display: 'flex',
   flexDirection: 'row',
   height: '85vh',
-  backgroundColor: '#fff',
+  backgroundColor: '#fff'
 }));
 
 const MessagesList = styled(Box)(({ theme }) => ({
   width: '300px',
   borderRight: '1px solid #e0e0e0',
   backgroundColor: '#F6F8FB',
-  overflowY: 'auto',
+  overflowY: 'auto'
 }));
 
 const ChatArea = styled(Box)(({ theme }) => ({
@@ -38,14 +38,14 @@ const ChatArea = styled(Box)(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
   justifyContent: 'space-between',
-  padding: theme.spacing(2),
+  padding: theme.spacing(2)
 }));
 
 const MessageRow = styled(Box)(({ type }) => ({
   display: 'flex',
   alignItems: 'flex-start',
   marginBottom: '8px',
-  flexDirection: type === 'sent' ? 'row-reverse' : 'row',
+  flexDirection: type === 'sent' ? 'row-reverse' : 'row'
 }));
 
 const MessageBox = styled(Box)(({ theme, type }) => ({
@@ -54,13 +54,13 @@ const MessageBox = styled(Box)(({ theme, type }) => ({
   borderRadius: theme.shape.borderRadius,
   backgroundColor: type === 'sent' ? theme.palette.primary.main : '#f5f5f5',
   color: type === 'sent' ? '#fff' : theme.palette.text.primary,
-  margin: type === 'sent' ? '0 0 0 16px' : '0 16px 0 0',
+  margin: type === 'sent' ? '0 0 0 16px' : '0 16px 0 0'
 }));
 
 const SidebarTitle = styled(Typography)(({ theme }) => ({
   padding: theme.spacing(2),
   borderBottom: '1px solid #e0e0e0',
-  fontWeight: 'bold',
+  fontWeight: 'bold'
 }));
 
 export default function ChatLayout() {
@@ -73,7 +73,7 @@ export default function ChatLayout() {
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
-
+  const moduleName = selectedTicket.ticket_module || 'Admin';
   // Fetch all tickets on component mount
   useEffect(() => {
     const fetchTickets = async () => {
@@ -95,7 +95,7 @@ export default function ChatLayout() {
   useEffect(() => {
     if (routeTicketId) {
       // Find ticket in our list or fetch it
-      const ticket = tickets.find(t => t.ticket_id.toString() === routeTicketId);
+      const ticket = tickets.find((t) => t.ticket_id.toString() === routeTicketId);
       if (ticket) {
         setSelectedTicket(ticket);
       } else {
@@ -149,30 +149,34 @@ export default function ChatLayout() {
 
     const messageData = {
       ticket_id: parseInt(selectedTicket.ticket_id),
-      author_name: 'Admin',
+      // author_name: selectedTicket.assigned || 'Admin',
+      author_name: moduleName,
       author_avatar: 'admin_avatar_url',
       author_type: 'admin',
       content: newMessage,
-      is_public: true,
+      is_public: true
     };
 
     try {
       const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/comments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(messageData),
+        body: JSON.stringify(messageData)
       });
 
       if (response.ok) {
         const savedMessage = await response.json();
         setNewMessage('');
-        
+
         // Add the new message to our list
-        setMessages((prevMessages) => [...prevMessages, {
-          ...messageData,
-          comment_id: savedMessage.comment_id || Date.now(),
-          createdAt: savedMessage.createdAt || new Date().toISOString(),
-        }]);
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          {
+            ...messageData,
+            comment_id: savedMessage.comment_id || Date.now(),
+            createdAt: savedMessage.createdAt || new Date().toISOString()
+          }
+        ]);
       }
     } catch (error) {
       console.error('Error sending message:', error);
@@ -184,7 +188,9 @@ export default function ChatLayout() {
       <MessagesList>
         <SidebarTitle>Active Tickets</SidebarTitle>
         {loading && tickets.length === 0 ? (
-          <Typography align="center" p={2}>Loading tickets...</Typography>
+          <Typography align="center" p={2}>
+            Loading tickets...
+          </Typography>
         ) : (
           <List>
             {tickets.map((ticket) => (
@@ -196,23 +202,22 @@ export default function ChatLayout() {
                   border: selectedTicket?.ticket_id === ticket.ticket_id ? '2px solid orange' : 'none',
                   backgroundColor: selectedTicket?.ticket_id === ticket.ticket_id ? '#fff' : 'transparent',
                   margin: '4px',
-                  borderRadius: '4px',
+                  borderRadius: '4px'
                 }}
               >
                 <ListItemAvatar>
                   <Avatar alt={ticket.issuer_full_name || 'User'} />
                 </ListItemAvatar>
-                <ListItemText
-                  primary={ticket.issuer_phone_number || 'No Number'}
-                  secondary={ticket.ticket_title || 'No Title'}
-                />
+                <ListItemText primary={ticket.issuer_phone_number || 'No Number'} secondary={ticket.ticket_title || 'No Title'} />
                 <Typography variant="caption" color="textSecondary">
                   {new Date(ticket.createdAt).toLocaleDateString()}
                 </Typography>
               </ListItem>
             ))}
             {tickets.length === 0 && !loading && (
-              <Typography align="center" p={2}>No tickets available</Typography>
+              <Typography align="center" p={2}>
+                No tickets available
+              </Typography>
             )}
           </List>
         )}
@@ -229,17 +234,23 @@ export default function ChatLayout() {
                   {selectedTicket.status || 'Active Ticket'}
                 </Typography>
               </Box>
-              <Button variant="outlined" onClick={() => setModalOpen(true)}>Preview Ticket</Button>
+              <Button variant="outlined" onClick={() => setModalOpen(true)}>
+                Preview Ticket
+              </Button>
             </Box>
 
             <Box flexGrow={1} overflow="auto" mb={2} sx={{ display: 'flex', flexDirection: 'column' }}>
               {loading ? (
-                <Typography align="center" p={2}>Loading messages...</Typography>
+                <Typography align="center" p={2}>
+                  Loading messages...
+                </Typography>
               ) : messages.length > 0 ? (
                 messages.map((message) => (
                   <MessageRow key={message.comment_id} type={message.author_type === 'admin' ? 'sent' : 'received'}>
                     <MessageBox type={message.author_type === 'admin' ? 'sent' : 'received'}>
-                      <Typography variant="subtitle2" fontWeight="bold">{message.author_name}</Typography>
+                      <Typography variant="subtitle2" fontWeight="bold">
+                        {message.author_name}
+                      </Typography>
                       <Typography>{message.content}</Typography>
                       <Typography variant="caption" color="textSecondary">
                         {new Date(message.createdAt).toLocaleTimeString()}
@@ -248,7 +259,9 @@ export default function ChatLayout() {
                   </MessageRow>
                 ))
               ) : (
-                <Typography align="center" p={2}>No messages yet</Typography>
+                <Typography align="center" p={2}>
+                  No messages yet
+                </Typography>
               )}
             </Box>
 
@@ -267,21 +280,19 @@ export default function ChatLayout() {
           </>
         ) : (
           <Box display="flex" flex={1} alignItems="center" justifyContent="center">
-            <Typography variant="h4" color="textSecondary">No Ticket Selected</Typography>
+            <Typography variant="h4" color="textSecondary">
+              No Ticket Selected
+            </Typography>
           </Box>
         )}
       </ChatArea>
 
       <Dialog open={openPreview} onClose={() => setOpenPreview(false)}>
         <DialogTitle>File Preview</DialogTitle>
-        <DialogContent>
-          {/* File preview content goes here */}
-        </DialogContent>
+        <DialogContent>{/* File preview content goes here */}</DialogContent>
       </Dialog>
 
-      {modalOpen && (
-        <TicketModal open={modalOpen} onClose={() => setModalOpen(false)} ticketDetails={selectedTicket} />
-      )}
+      {modalOpen && <TicketModal open={modalOpen} onClose={() => setModalOpen(false)} ticketDetails={selectedTicket} />}
     </ChatContainer>
   );
 }

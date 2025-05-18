@@ -145,7 +145,6 @@ TicketModal.propTypes = {
     title: PropTypes.string,
     ticket_module: PropTypes.string,
     assigned: PropTypes.string,
-
     ticket_status: PropTypes.string,
     status: PropTypes.string,
     issuer_location: PropTypes.string,
