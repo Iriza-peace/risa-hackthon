@@ -10,18 +10,28 @@ import Chat from "./chat.model.js";
 Ticket.belongsTo(Agent, { foreignKey: "agent_id" });
 Agent.hasMany(Ticket, { foreignKey: "agent_id" });
 
+Ticket.belongsTo(Module, {
+    foreignKey: 'module_id',
+    as: 'module'
+});
+
+Module.hasMany(Ticket, {
+    foreignKey: 'module_id',
+    as: 'tickets'
+});
+
 Category.belongsTo(Module, { foreignKey: "module_id" });
 Module.hasMany(Category, { foreignKey: "module_id" });
 
-Ticket.hasMany(Comment, {foreignKey:"ticket_id", as:"comment"});
-Comment.belongsTo(Ticket,{foreignKey:"ticket_id"});
+Ticket.hasMany(Comment, { foreignKey: "ticket_id", as: "comment" });
+Comment.belongsTo(Ticket, { foreignKey: "ticket_id" });
 
-Chat.hasMany(Comment,{
-    foreignKey:'chat_id',
-    as:'comments'
+Chat.hasMany(Comment, {
+    foreignKey: 'chat_id',
+    as: 'comments'
 })
 
 
 
 
-export { Agent, Ticket, Category, Module, Comment , Chat};
+export { Agent, Ticket, Category, Module, Comment, Chat };

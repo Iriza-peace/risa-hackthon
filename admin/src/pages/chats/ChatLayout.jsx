@@ -90,11 +90,9 @@ export default function ChatLayout() {
  
   // Get module name from the ticket or default to "Admin"
   const getModuleName = () => {
-    if (selectedTicket?.ticket_module) {
-      return selectedTicket.ticket_module;
-    }
-    return "Admin";
-  };
+  return selectedTicket?.module_name || 'Unassigned';
+};
+
 
   useEffect(() => {
     const fetchTickets = async () => {
@@ -250,7 +248,7 @@ export default function ChatLayout() {
             </Typography>
             <Typography variant="body2">{message.content}</Typography>
             <Typography variant="caption" color={messageType === 'sent' ? 'rgba(255,255,255,0.7)' : 'textSecondary'}>
-              {new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              {/* {new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} */}
             </Typography>
             
             <Box mt={0.5} display="flex" gap={1}>
@@ -322,8 +320,9 @@ export default function ChatLayout() {
               <Avatar alt={selectedTicket.issuer_full_name || 'User'} />
               <Box ml={2} flexGrow={1}>
                 <Typography variant="h6">{selectedTicket.issuer_full_name || 'Unknown User'}</Typography>
-                <Typography variant="subtitle2" color="success.main">
-                  {selectedTicket.ticket_status || 'Active Ticket'} · Module: {getModuleName()}
+                <Typography variant="subtitle2" color="success.light">
+                  {/* {selectedTicket.ticket_status || 'Active Ticket'} */}
+                   AGENT FROM {getModuleName()}
                 </Typography>
               </Box>
               <Button variant="outlined" onClick={() => setModalOpen(true)}>Preview Ticket</Button>

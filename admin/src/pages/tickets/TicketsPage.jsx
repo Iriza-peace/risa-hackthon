@@ -101,7 +101,7 @@ export default function TicketsTable() {
           name: ticket.issuer_full_name,
           title: ticket.ticket_title,
           location: ticket.issuer_location,
-          assigned: ticket.ticket_module,
+          assigned: ticket.module_name,
           status: ticket.ticket_status,
           content: ticket.ticket_description,
           doc: [] 

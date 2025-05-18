@@ -1,7 +1,7 @@
 import expressAsyncHandler from "express-async-handler";
 import path from "path";
 import fs from "fs";
-import { Agent, Ticket, Comment } from "../models/_index.js";
+import { Agent, Ticket, Comment, Module } from "../models/_index.js";
 
 // Remove multer configuration from controller - it should only be in router
 
@@ -12,7 +12,7 @@ const createNewTicket = expressAsyncHandler(async (req, res) => {
 		issuer_avatar,
 		issuer_phone_number,
 		issuer_location,
-		ticket_module,
+		module_id,
 		ticket_title,
 		ticket_category,
 		upvotes,
@@ -47,7 +47,7 @@ const createNewTicket = expressAsyncHandler(async (req, res) => {
 			issuer_avatar,
 			issuer_phone_number,
 			issuer_location,
-			ticket_module,
+			module_id,
 			ticket_title,
 			ticket_category,
 			upvotes: upvotes || 0,
@@ -159,15 +159,31 @@ const markTicketAsCompleted = expressAsyncHandler(async (req, res) => {
 
 const getAllTickets = expressAsyncHandler(async (req, res) => {
 	try {
-		const allTickets = await Ticket.findAll();
-		res.status(200).json(allTickets);
-		console.log(allTickets);
+		const allTickets = await Ticket.findAll({
+			include: [
+				{
+					model: Module,
+					as: 'module',
+					attributes: ['module_id', 'module_name']
+				}
+			]
+		});
+
+		// Transform tickets to include module_name at the top level
+		const transformedTickets = allTickets.map(ticket => {
+			const t = ticket.toJSON();
+			return {
+				...t,
+				module_name: t.module?.module_name || 'Unknown'
+			};
+		});
+
+		res.status(200).json(transformedTickets);
 	} catch (err) {
 		console.error(err);
 		res.status(500).json({ message: "Internal server error" });
 	}
 });
-
 const getSingleTicket = expressAsyncHandler(async (req, res) => {
 	const { ticketId } = req.params;
 	try {
@@ -195,6 +211,11 @@ const getTicketsByIdNumber = expressAsyncHandler(async (req, res) => {
 	try {
 		const tickets = await Ticket.findAll({
 			where: { issuer_id_number: userId },
+			include: [{
+                model: Module,
+                as: 'module',
+                attributes: ['module_id', 'module_name']
+            }]
 		});
 
 		if (!tickets || tickets.length === 0) {

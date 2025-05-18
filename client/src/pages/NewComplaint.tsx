@@ -243,7 +243,7 @@ const NewComplaint: React.FC = () => {
       formData.append("issuer_full_name", fullName);
       formData.append("issuer_phone_number", phoneNumber);
       formData.append("issuer_location", location);
-      formData.append("ticket_module", module);
+      formData.append("module_id", module);
       formData.append("ticket_title", title);
       formData.append("ticket_description", description);
       formData.append("ticket_category", category);

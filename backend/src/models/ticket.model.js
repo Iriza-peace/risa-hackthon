@@ -1,6 +1,7 @@
 import { DataTypes } from "sequelize";
 
 import { sequelize } from "../config/db.config.js";
+import Module from './module.model.js'
 
 const Ticket = sequelize.define(
 	"Ticket",
@@ -31,10 +32,17 @@ const Ticket = sequelize.define(
 			type: DataTypes.STRING(32),
 			// allowNull: false,
 		},
-		ticket_module: {
-			type: DataTypes.STRING(25),
-			// allowNull: false,
-		},
+		// ticket_module: {
+		// 	type: DataTypes.STRING(25),
+		// 	// allowNull: false,
+		// },
+		 module_id: {
+            type: DataTypes.INTEGER,
+            references: {
+                model: Module,
+                key: 'module_id'
+            }
+        },
 		ticket_title: {
 			type: DataTypes.STRING(250),
 			// allowNull: false,
