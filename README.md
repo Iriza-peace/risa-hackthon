@@ -49,7 +49,44 @@ This platform makes complaint filing quick, accessible, and transparent, ensurin
 4. Run frontend application (client) 
 - cd client
 - npm install
-- Copy paste from .env.example to make .env file
+- Make .env file out of .env.example  
+```
+## Paste these mock data into modules table in mysql database
+INSERT INTO modules (module_name) 
+VALUES 
+  ('RIB'),
+  ('MINEDUC'),
+  ('MINFRA'),
+  ('MINEMA'),
+  ('WASAC');
+
+## Paste these mock data into categories table in mysql database
+INSERT INTO categories (category_title, module_id) VALUES
+-- RIB
+('Abatekamutwe', 1),
+('Umutekano', 1),
+('Amategeko', 1),
+
+-- MINEDUC
+('Ibibazo by’amashuri', 2),
+('Abarimu n’imyigishirize', 2),
+('Ibikoresho by’ishuri', 2),
+
+-- MINFRA
+('Imihanda yangiritse', 3),
+('Amatara yo ku mihanda', 3),
+('Ibikorwaremezo rusange', 3),
+
+-- MINEMA
+('Ibiza', 4),
+('Ibikoresho by’ibanze', 4),
+('Inzu zangiritse', 4),
+
+-- WASAC
+('Amazi make', 5),
+('Kubura amazi', 5),
+('Amadeni y’amazi', 5);
+```
 - npm run dev
 5. Run frontend admin application
 - cd admin 
