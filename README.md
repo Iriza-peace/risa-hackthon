@@ -56,7 +56,7 @@ This platform makes complaint filing quick, accessible, and transparent, ensurin
 - npm install
 - Copy paste from .env.example to make .env file
 - npm start
-- Paste this https://675bebe29ce247eb1937dee8.mockapi.io/support/api/users and then take any *agent for Login*
+- Paste this in browser https://675bebe29ce247eb1937dee8.mockapi.io/support/api/users and then take any *agent for Login*
 - **I supposed that government agents details with roles will come from already existing api hence no need to register new agent**
 - Login with details 
 
