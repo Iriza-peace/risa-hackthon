@@ -1,18 +1,7 @@
 import { Sequelize } from "sequelize";
 
 const sequelize = new Sequelize(
-	process.env.DB_NAME,
-	process.env.DB_USER,
-	process.env.DB_PWD,
-	{
-		host: "localhost",
-		dialect: "mysql",
-		logging: (msg) => {
-			if (process.env.NODE_ENV !== "development") {
-				console.log(msg);
-			}
-		},
-	}
+	process.env.DB_URL
 );
 
 async function startDB() {
