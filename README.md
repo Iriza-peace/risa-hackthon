@@ -50,8 +50,9 @@ This platform makes complaint filing quick, accessible, and transparent, ensurin
 - cd client
 - npm install
 - Make .env file out of .env.example  
-```
+
 ## Paste these mock data into modules table in mysql database
+```
 INSERT INTO modules (module_name) 
 VALUES 
   ('RIB'),
@@ -59,8 +60,9 @@ VALUES
   ('MINFRA'),
   ('MINEMA'),
   ('WASAC');
-
+```
 ## Paste these mock data into categories table in mysql database
+```
 INSERT INTO categories (category_title, module_id) VALUES
 -- RIB
 ('Abatekamutwe', 1),
