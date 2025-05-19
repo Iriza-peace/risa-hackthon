@@ -1,123 +1,88 @@
-
 # NSOBANURIRA — Complaint Platform
 
-## Description  
-Most local rwandans face challenges when trying to complain about problems because:  
-- It is time-consuming  
-- Leaders often ignore or ghost them  
-- Lack of technical skills to navigate complex systems   
+## 📝 Overview
 
-**NSOBANURIRA** offers a simple, engaging, social media–style platform where:  
-- Citizens can post complaints **no logging in required**  
-- Other citizens can comment, support, and share experiences  
-- Complaints are routed to the **government departments**  
+Many Rwandans struggle to report issues due to:
 
-An **admin dashboard** allows different departments to:  
-- Track and resolve complaints efficiently  
-- Chat with citizens directly through complaint comments. 
+- Slow and ignored channels
+- Lack of tech skills
+- Ghosting by leaders
 
-This platform makes complaint filing quick, accessible, and transparent, ensuring citizens are heard and problems get solved faster.
+**NSOBANURIRA** makes it easy:
+
+- Citizens post complaints — **no login**
+- Others comment & support
+- Complaints are auto-routed to the right department
+- Government admins reply & resolve through a dashboard
 
 ---
 
-## Features  
-- No login required for citizens to post complaints  
-- Social media-like interface for easy engagement  
-- Auto-routing of complaints to relevant government departments  
-- Admin dashboard for complaint management and resolution  
-- Real-time comment/chat functionality between citizens and admins
-- Track if ticket resolved
+## ✨ Features
 
-  
-## LIVE DEMOS
-- **Frontend(Citizen)** https://nsobanurira-platform.vercel.app/ 
-- **Frontend(Admin)** https://nsobanurira-admin.vercel.app/ 
+- No login required
+- Social-style platform
+- Complaints auto-routed to relevant departments
+- Admin dashboard to manage & respond
+- Track complaint resolution
+- Real-time comment/chat
 
 ---
 
-## Tech Stack  
-- Frontend(Complainter): React / Next js / Typescript / Material UI
-- Frontend(admin): React / Material UI
-- Backend: Node.js 
-- Database: MYSQL  
+## 🔗 Live Demo
+
+- **Citizen App**: https://nsobanurira-platform.vercel.app/
+- **Admin App**: https://nsobanurira-admin.vercel.app/
+- **Video Link**: https://shorturl.at/8O29D
+---
+
+## 🛠️ Tech Stack
+
+- **Frontend (Citizen)**: Next.js, TypeScript, MUI
+- **Frontend (Admin)**: React, MUI
+- **Backend**: Node.js
+- **Database**: MySQL
 
 ---
 
-## How to Run
-1. Clone Repository **git clone https://github.com/Iriza-peace/risa-hackthon.git**
-2. Install dependencies  
-3. Run backend server 
--  cd backend
-- npm install
-- Reference .env.example to make .env file
-- npm run dev
-4. Run frontend application (client) 
-- cd client
-- npm install
-- Make .env file out of .env.example  
+## 🚀 Setup Instructions
 
-## Paste these mock data into modules table in mysql database
+```bash
+# 1. Clone the repo
+git clone https://github.com/Iriza-peace/risa-hackthon.git
+
+# 2. Backend setup
+cd backend
+npm install
+# Create a .env file from .env.example
+npm run dev
+
+# 3. Citizen frontend setup
+cd client
+npm install
+# Create a .env file from .env.example
+npm run dev
+
+# 4. Admin frontend setup
+cd admin
+npm install
+# Create a .env file from .env.example
+npm start
+
+Admins can log in using mock data from:
+https://675bebe29ce247eb1937dee8.mockapi.io/support/api/users
+
+## SQL Mock Data
+#  MODULES & CATEGORIES
 ```
-INSERT INTO modules (module_name) 
-VALUES 
-  ('RIB'),
-  ('MINEDUC'),
-  ('MINFRA'),
-  ('MINEMA'),
-  ('WASAC');
-```
-## Paste these mock data into categories table in mysql database
-```
+
+INSERT INTO modules (module_name) VALUES
+('RIB'), ('MINEDUC'), ('MINFRA'), ('MINEMA'), ('WASAC');
+
 INSERT INTO categories (category_title, module_id) VALUES
--- RIB
-('Abatekamutwe', 1),
-('Umutekano', 1),
-('Amategeko', 1),
+('Abatekamutwe', 1), ('Umutekano', 1), ('Amategeko', 1),
+('Ibibazo by’amashuri', 2), ('Abarimu', 2), ('Ibikoresho', 2),
+('Imihanda', 3), ('Amatara', 3), ('Ibikorwaremezo', 3),
+('Ibiza', 4), ('Ibikoresho', 4), ('Inzu zangiritse', 4),
+('Amazi make', 5), ('Kubura amazi', 5), ('Amadeni y’amazi', 5);
 
--- MINEDUC
-('Ibibazo by’amashuri', 2),
-('Abarimu n’imyigishirize', 2),
-('Ibikoresho by’ishuri', 2),
-
--- MINFRA
-('Imihanda yangiritse', 3),
-('Amatara yo ku mihanda', 3),
-('Ibikorwaremezo rusange', 3),
-
--- MINEMA
-('Ibiza', 4),
-('Ibikoresho by’ibanze', 4),
-('Inzu zangiritse', 4),
-
--- WASAC
-('Amazi make', 5),
-('Kubura amazi', 5),
-('Amadeni y’amazi', 5);
 ```
-- npm run dev
-5. Run frontend admin application
-- cd admin 
-- npm install
-- Copy paste from .env.example to make .env file
-- npm start
-- Paste this in browser https://675bebe29ce247eb1937dee8.mockapi.io/support/api/users and then take any *agent for Login*
-- **I supposed that government agents details with roles will come from already existing api hence no need to register new agent**
-- Login with details 
-
-
-## Major Features to Explore
-### Client(Complainter)
-- Post a new Complaint
-- Engage on other complaints 
-- See your submissions with national ID that you sent during new complaint
-- See comments on your complaint from government department or other citizens 
-
-### Government admin
-- Log in with mock api
-- See all tickets(complaints)
-- See analytics like chats(comments) vs tickets 
-- Preview Complaints
-- Mark them as solved 
-- Comment(chat) to the tickets
-
-
