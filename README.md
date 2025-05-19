@@ -41,6 +41,7 @@ Many Rwandans struggle to report issues due to:
 - **Frontend (Admin)**: React, MUI
 - **Backend**: Node.js
 - **Database**: MySQL
+- **Db used during deployment**: Railway
 
 ---
 
