@@ -39,7 +39,7 @@ This platform makes complaint filing quick, accessible, and transparent, ensurin
 ---
 
 ## How to Run
-1. Clone Repository
+1. Clone Repository **git clone https://github.com/Iriza-peace/risa-hackthon.git**
 2. Install dependencies  
 3. Run backend server 
 -  cd backend
@@ -93,9 +93,9 @@ INSERT INTO categories (category_title, module_id) VALUES
 - npm install
 - Copy paste from .env.example to make .env file
 - npm start
-- Go to .env and copy and paste the mock api for agents in browser
-- Take email and a password from one of employee
-- Use Details to log in into add Dashboard
+- Paste this in browser https://675bebe29ce247eb1937dee8.mockapi.io/support/api/users and then take any *agent for Login*
+- **I supposed that government agents details with roles will come from already existing api hence no need to register new agent**
+- Login with details 
 
 
 ## Major Features to Explore
