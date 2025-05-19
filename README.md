@@ -28,6 +28,10 @@ This platform makes complaint filing quick, accessible, and transparent, ensurin
 - Real-time comment/chat functionality between citizens and admins
 - Track if ticket resolved
 
+  
+## LIVE DEMOS
+- **Frontend(Citizen)** https://nsobanurira-platform.vercel.app/ 
+- **Frontend(Admin)** https://nsobanurira-admin.vercel.app/ 
 
 ---
 
