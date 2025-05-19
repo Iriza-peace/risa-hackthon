@@ -8,7 +8,7 @@ Most local rwandans face challenges when trying to complain about problems becau
 - Lack of technical skills to navigate complex systems   
 
 **NSOBANURIRA** offers a simple, engaging, social media–style platform where:  
-- Citizens can post complaints **no logging required**  
+- Citizens can post complaints **no logging in required**  
 - Other citizens can comment, support, and share experiences  
 - Complaints are routed to the **government departments**  
 
@@ -28,6 +28,10 @@ This platform makes complaint filing quick, accessible, and transparent, ensurin
 - Real-time comment/chat functionality between citizens and admins
 - Track if ticket resolved
 
+  
+## LIVE DEMOS
+- **Frontend(Citizen)** https://nsobanurira-platform.vercel.app/ 
+- **Frontend(Admin)** https://nsobanurira-admin.vercel.app/ 
 
 ---
 
