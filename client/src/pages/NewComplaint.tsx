@@ -95,7 +95,7 @@ const NewComplaint: React.FC = () => {
     async function fetchModules() {
       setLoadingModules(true);
       try {
-        const res = await fetch("http://localhost:5000/api/modules");
+        const res = await fetch(`${process.env.VITE_APP_API_URL}/modules`);
         if (!res.ok) throw new Error("Failed to fetch modules");
         const data = await res.json();
         setModules(data);
@@ -121,7 +121,7 @@ const NewComplaint: React.FC = () => {
       setLoadingCategories(true);
       try {
         const res = await fetch(
-          `http://localhost:5000/api/categories/id/${module}`
+          `${process.env.VITE_APP_API_URL}/categories/id/${module}`
         );
         if (!res.ok) throw new Error("Failed to fetch categories");
         const data = await res.json();
@@ -138,7 +138,7 @@ const NewComplaint: React.FC = () => {
     async function fetchAllCategories() {
       setLoadingCategories(true);
       try {
-        const res = await fetch("http://localhost:5000/api/categories");
+        const res = await fetch(`${process.env.VITE_APP_API_URL}/categories`);
         if (!res.ok) throw new Error("Failed to fetch categories");
         const data = await res.json();
         setCategories(data);
@@ -259,7 +259,7 @@ const NewComplaint: React.FC = () => {
         formData.append("media", file, file.name);
       });
 
-      const response = await fetch("http://localhost:5000/api/tickets", {
+      const response = await fetch(`${process.env.VITE_APP_API_URL}/tickets`, {
         method: "POST",
         body: formData,
       });

@@ -54,7 +54,7 @@ const MySubmissions: React.FC = () => {
       if (!userId) return;
       setLoading(true);
       try {
-        const response = await fetch(`http://localhost:5000/api/tickets/user/${userId}`);
+        const response = await fetch(`${process.env.VITE_APP_API_URL}/tickets/user/${userId}`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }

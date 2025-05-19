@@ -59,7 +59,7 @@ const ComplaintDetail: React.FC = () => {
       try {
         setLoading(true);
        
-        const response = await fetch(`http://localhost:5000/api/tickets/${id}`);
+        const response = await fetch(`${process.env.VITE_APP_API_URL}/tickets/${id}`);
 
         if (!response.ok) {
           throw new Error(`Failed to fetch ticket: ${response.status}`);

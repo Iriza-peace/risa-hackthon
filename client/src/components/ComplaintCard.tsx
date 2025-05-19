@@ -74,7 +74,7 @@ const ComplaintCard = ({ complaint, isDetailed = false }) => {
         // Handle string JSON arrays
         if (typeof image === 'string') {
           if (image.startsWith('/uploads')) {
-            return `http://localhost:5000${image}`;
+            return `${process.env.VITE_APP_API_URL}${image}`;
           }
           return image;
         }
@@ -105,7 +105,7 @@ const ComplaintCard = ({ complaint, isDetailed = false }) => {
 
   useEffect(() => {
     if (isDetailed && complaint.ticket_id) {
-      fetch(`http://localhost:5000/api/comments/tickets/${complaint.ticket_id}`)
+      fetch(`${process.env.VITE_APP_API_URL}/comments/tickets/${complaint.ticket_id}`)
         .then((res) => res.json())
         .then((data) => setComments(data))
         .catch((err) => console.error(err));
@@ -130,7 +130,7 @@ const ComplaintCard = ({ complaint, isDetailed = false }) => {
   const handleCommentSubmit = async () => {
     if (!newCommentContent.trim() || !commentAuthorName) return;
     try {
-      const res = await fetch("http://localhost:5000/api/comments", {
+      const res = await fetch(`${process.env.VITE_APP_API_URL}/comments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -69,7 +69,7 @@ const Home: React.FC = () => {
   useEffect(() => {
     async function fetchTickets() {
       try {
-        const res = await fetch("http://localhost:5000/api/tickets");
+        const res = await fetch(`${process.env.VITE_APP_API_URL}/tickets`);
         const data = await res.json();
         setTickets(data);
       } catch (error) {
@@ -81,7 +81,7 @@ const Home: React.FC = () => {
 
     async function fetchCategories() {
       try {
-        const res = await fetch("http://localhost:5000/api/categories");
+        const res = await fetch(`${process.env.VITE_APP_API_URL}/categories`);
         const data = await res.json();
         setCategories(data);
         console.log("categories:", data);
