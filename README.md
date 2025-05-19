@@ -25,7 +25,8 @@ This platform makes complaint filing quick, accessible, and transparent, ensurin
 - Social media-like interface for easy engagement  
 - Auto-routing of complaints to relevant government departments  
 - Admin dashboard for complaint management and resolution  
-- Real-time comment/chat functionality between citizens and admins  
+- Real-time comment/chat functionality between citizens and admins
+- Track if ticket resolved
 
 
 ---
